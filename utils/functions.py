@@ -161,7 +161,44 @@ def select_width(imageCenital, tube_distance_cm):
 
     if "None" in nBTN:
         print("El objeto no está visible")
-        return None
+        return 0
+
+    # Calcular la distancia en píxeles del tubo
+    tube_distance_px = np.linalg.norm(
+        np.array(clicked_points[0]) - np.array(clicked_points[1])
+    )
+
+    # Relación píxeles a cm
+    px_to_cm = tube_distance_cm / tube_distance_px
+
+    print(f"Relación píxeles a cm: {px_to_cm:.4f} cm/px")
+    return px_to_cm
+
+
+def select_cmRefT(imageCenital, tube_distance_cm):
+
+    global clicked_points
+    clicked_points = []
+
+    # Crear una figura en pantalla completa
+    fig = plt.figure(figsize=(10, 10))
+    mng = plt.get_current_fig_manager()
+
+    # Mostrar la imagen cenital
+    plt.imshow(cv2.cvtColor(imageCenital, cv2.COLOR_BGR2RGB))
+    plt.title("Selecciona la parte de abajo y arriba de la torre")
+    plt.axis("off")
+
+    # Conectar el evento de clic
+    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+
+    # Esperar hasta que se hagan dos clics
+    while len(clicked_points) < 2:
+        plt.pause(0.1)
+
+    # Desconectar el evento de clic
+    plt.gcf().canvas.mpl_disconnect(cid)
+    plt.close()
 
     # Calcular la distancia en píxeles del tubo
     tube_distance_px = np.linalg.norm(
@@ -225,7 +262,7 @@ def calculate_high(imageFrontal, pix2cm):
 
     # Mostrar la imagen cenital
     plt.imshow(cv2.cvtColor(imageFrontal, cv2.COLOR_BGR2RGB))
-    plt.title("Seleccionar dos puntos de ref")
+    plt.title("Selecciona la altura de la antena")
     plt.axis("off")
 
     # Conectar el evento de tecla
@@ -245,7 +282,7 @@ def calculate_high(imageFrontal, pix2cm):
 
     if "None" in nBTN:
         print("El objeto no está visible")
-        return None
+        return 0
 
     distPix = np.linalg.norm(np.array(clicked_points[0]) - np.array(clicked_points[1]))
 
@@ -384,7 +421,7 @@ def calculate_width(imageCenital, imageFrontal, px_to_cm):
 
     if "None" in nBTN:
         print("El objeto no está visible")
-        return None
+        return 0
 
     # Calcular el ancho de la antena en píxeles y convertir a cm
     antenna_width_px = np.linalg.norm(
@@ -441,7 +478,7 @@ def calculate_angle(imageCenital, imageFrontal, yawDegreesCenital):
 
     if "None" in clicked_points:
         print("El objeto no está visible")
-        return None
+        return 0
 
     # Calcular el punto medio de los puntos de la antena
     antenna_midpoint = clicked_points[0]
@@ -503,7 +540,7 @@ def hightPointTower(imageFrontal):
 
     if "None" in clicked_points:
         print("El objeto no está visible")
-        return None
+        return 0
 
     altoTorre = clicked_points[0]
     return altoTorre
@@ -541,7 +578,7 @@ def calculate_hightOnTower(imageFrontal, cmAntena):
 
     if "None" in nBTN:
         print("El objeto no está visible")
-        return None, None
+        return 0, 0
 
     # Calcular la distancia en píxeles del tubo
     print(clicked_points)
@@ -905,14 +942,15 @@ def downloadZip(
 ):  # Buscar la tarea
     task = find_task(client, task_name)
 
-    # Cerrar cliente cvat
-    client.logout()
-
     # Obtener el dataset con lables e imagenes
     get_dataset(task, CVAT_HOST, CVAT_USERNAME, CVAT_PASSWORD)
 
     # Mover archivo zip a carpeta torres
     os.system(f"mv {task_name}.zip torres/")
+
+    # Cerrar cliente cvat
+    client.logout()
+
     # Correr unzip para descomprimir el archivo y que no haga print de lo que hace
     print(f"Descomprimiendo el archivo {task_name}.zip...")
     os.system(f"unzip torres/{task_name}.zip -d torres/{task_name}")
@@ -1047,82 +1085,46 @@ def csv_to_json(task_name):
 
     # Replace NaN with None
     data = data.where(pd.notnull(data), None)
-
-    # Recorrer valores en columna 'Alto' si es Nan, se reemplaza por None si es numero cambiar ',' por '.'
-    for _, row in data.iterrows():
-        if row["Alto"] is not None:
-            if isinstance(row["Alto"], str):
-                row["Alto"] = row["Alto"].replace(",", ".")
-            else:
-                row["Alto"] = str(row["Alto"]).replace(",", ".")
-        else:
-            row["Alto"] = None
-
-    # Recorrer valores en columna 'Ancho' si es Nan, se reemplaza por None si es numero cambiar ',' por '.'
-    for _, row in data.iterrows():
-        if row["Ancho"] is not None:
-            if isinstance(row["Ancho"], str):
-                row["Ancho"] = row["Ancho"].replace(",", ".")
-            else:
-                row["Ancho"] = str(row["Ancho"]).replace(",", ".")
-        else:
-            row["Ancho"] = None
-
-    # Recorrer valores en columna 'H centro' si es Nan, se reemplaza por None si es numero cambiar ',' por '.'
-    for _, row in data.iterrows():
-        if row["H centro"] is not None:
-            if isinstance(row["H centro"], str):
-                row["H centro"] = row["H centro"].replace(",", ".")
-            else:
-                row["H centro"] = str(row["H centro"]).replace(",", ".")
-        else:
-            row["H centro"] = None
-
-    # Recorrer valores en columna 'H inicial' si es Nan, se reemplaza por None si es numero cambiar ',' por '.'
-    for _, row in data.iterrows():
-        if row["H inicial"] is not None:
-            if isinstance(row["H inicial"], str):
-                row["H inicial"] = row["H inicial"].replace(",", ".")
-            else:
-                row["H inicial"] = str(row["H inicial"]).replace(",", ".")
-        else:
-            row["H inicial"] = None
-
-    # Recorrer valores en columna 'H final' si es Nan, se reemplaza por None si es numero cambiar ',' por '.'
-    for _, row in data.iterrows():
-        if row["H final"] is not None:
-            if isinstance(row["H final"], str):
-                row["H final"] = row["H final"].replace(",", ".")
-            else:
-                row["H final"] = str(row["H final"]).replace(",", ".")
-        else:
-            row["H final"] = None
-
-    # Recorrer valores en columna 'Azimuth' si es Nan, se reemplaza por None si es numero cambiar ',' por '.'
-    for _, row in data.iterrows():
-        if row["Azimuth"] is not None:
-            if isinstance(row["Azimuth"], str):
-                row["Azimuth"] = row["Azimuth"].replace(",", ".")
-            else:
-                row["Azimuth"] = str(row["Azimuth"]).replace(",", ".")
-        else:
-            row["Azimuth"] = None
-
     # si el modelo es Nan, se reemplaza por "-"
     data["Modelo"] = data["Modelo"].where(pd.notnull(data["Modelo"]), "-")
     report = {}
     # Create the report as a dictionary
     for index, row in data.iterrows():
 
-        alto = row["Alto"] if not math.isnan(row["Alto"]) else None
-        ancho = row["Ancho"] if not math.isnan(row["Ancho"]) else None
-        h_centro = row["H centro"] if not math.isnan(row["H centro"]) else None
-        h_inicial = row["H inicial"] if not math.isnan(row["H inicial"]) else None
-        h_final = row["H final"] if not math.isnan(row["H final"]) else None
-        azimuth = row["Azimuth"] if not math.isnan(row["Azimuth"]) else None
+        alto = (
+            float(str(row["Alto"]).replace(",", "."))
+            if not math.isnan(float(str(row["Alto"]).replace(",", ".")))
+            else None
+        )
+        ancho = (
+            float(str(row["Ancho"]).replace(",", "."))
+            if not math.isnan(float(str(row["Ancho"]).replace(",", ".")))
+            else None
+        )
+        h_centro = (
+            float(str(row["H centro"]).replace(",", "."))
+            if not math.isnan(float(str(row["H centro"]).replace(",", ".")))
+            else None
+        )
+        h_inicial = (
+            float(str(row["H inicial"]).replace(",", "."))
+            if not math.isnan(float(str(row["H inicial"]).replace(",", ".")))
+            else None
+        )
+        h_final = (
+            float(str(row["H final"]).replace(",", "."))
+            if not math.isnan(float(str(row["H final"]).replace(",", ".")))
+            else None
+        )
+        azimuth = (
+            float(str(row["Azimuth"]).replace(",", "."))
+            if not math.isnan(float(str(row["Azimuth"]).replace(",", ".")))
+            else None
+        )
+        label_string = row["Label"]
 
         report[row["ID"]] = {
-            "Label": row["Label"],
+            "Label": json.loads(label_string.replace("'", '"')),
             "Modelo": row["Modelo"],
             "Tipo": row["Tipo"],
             "Alto": alto,

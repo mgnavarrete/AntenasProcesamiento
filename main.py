@@ -283,29 +283,28 @@ if __name__ == "__main__":
             option = input("Deseas calcular de una antena en específico? (y/N):")
 
             if option == "y":
-                keyAntena = int(input("Ingrese el ID de la antena a calcular:"))
-                alturaTorre = input("Ingrese la altura de la torre en cm:")
+                keyAntena = input("Ingrese el ID de la antena a calcular:")
+                alturaTorre = int(input("Ingrese la altura de la torre en cm:"))
                 if not os.path.exists(f"torres/{task_name}/general_view.jpg"):
                     imageGeneralPath = filedialog.askopenfilename(
                         title="Seleccione Vista General",
                         initialdir=f"torres/{task_name}",
                     )
                     imageGeneral = cv2.imread(imageGeneralPath)
-                    imageGeneral = fixDistor(imageGeneral, modelo)
                     cv2.imwrite(f"torres/{task_name}/general_view.jpg", imageGeneral)
                 else:
                     imageGeneral = cv2.imread(f"torres/{task_name}/general_view.jpg")
 
-                pix2cm = select_cmRef(imageGeneral, alturaTorre)
+                pix2cm = select_cmRefT(imageGeneral, alturaTorre)
                 Hcentro = calculate_high(imageGeneral, pix2cm)
-                report_dict[key]["H centro"] = Hcentro
+                report_dict[keyAntena]["H centro"] = Hcentro
                 altoAntena = report_dict[keyAntena]["Alto"]
 
                 if altoAntena != None:
                     Hinicial = Hcentro - (altoAntena / 2)
                     Hfinal = Hcentro + (altoAntena / 2)
-                    report_dict[key]["H inicial"] = Hinicial
-                    report_dict[key]["H final"] = Hfinal
+                    report_dict[keyAntena]["H inicial"] = Hinicial
+                    report_dict[keyAntena]["H final"] = Hfinal
 
             else:
                 alturaTorre = input("Ingrese la altura de la torre en cm:")
