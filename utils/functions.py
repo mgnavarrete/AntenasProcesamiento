@@ -955,8 +955,6 @@ def downloadZip(
     print(f"Descomprimiendo el archivo {task_name}.zip...")
     os.system(f"unzip torres/{task_name}.zip -d torres/{task_name}")
 
-    print("Archivo descomprimido!")
-
 
 def taskInput(task_name):
     levID = input("Ingrese el ID del levantamiento: ")
