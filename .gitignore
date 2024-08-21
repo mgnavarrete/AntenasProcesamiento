@@ -1,0 +1,8 @@
+# Ignorar .env
+.env
+
+# ignorar todo .zip
+*.zip
+
+# Ignorar carpeta torres y contenido
+torres/
