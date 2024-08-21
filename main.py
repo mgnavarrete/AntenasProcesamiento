@@ -280,37 +280,67 @@ if __name__ == "__main__":
             with open(f"torres/{task_name}/reporte.json", "r") as f:
                 report_dict = json.load(f)
 
-            alturaTorre = input("Ingrese la altura de la torre en cm:")
+            option = input("Deseas calcular de una antena en específico? (y/N):")
 
-            for key in report_dict.keys():
-                filename = report_dict[key]["Filename"]
-                image_path = os.path.join(rootPath, f"{filename}.JPG")
-                label_info = report_dict[key]["Label"]
-                metadata = read_metadata(os.path.join(metadataPath, f"{filename}.txt"))
-                yawDegrees = float(metadata["GimbalYawDegree"])
-                modelo = metadata["Model"]
-                imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
-                imageWidth = imageFrontalData.shape[1]
-                imageHeight = imageFrontalData.shape[0]
-                imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
-                altoAntena = report_dict[key]["Alto"]
+            if option == "y":
+                keyAntena = int(input("Ingrese el ID de la antena a calcular:"))
+                alturaTorre = input("Ingrese la altura de la torre en cm:")
+                if not os.path.exists(f"torres/{task_name}/general_view.jpg"):
+                    imageGeneralPath = filedialog.askopenfilename(
+                        title="Seleccione Vista General",
+                        initialdir=f"torres/{task_name}",
+                    )
+                    imageGeneral = cv2.imread(imageGeneralPath)
+                    imageGeneral = fixDistor(imageGeneral, modelo)
+                    cv2.imwrite(f"torres/{task_name}/general_view.jpg", imageGeneral)
+                else:
+                    imageGeneral = cv2.imread(f"torres/{task_name}/general_view.jpg")
+
+                pix2cm = select_cmRef(imageGeneral, alturaTorre)
+                Hcentro = calculate_high(imageGeneral, pix2cm)
+                report_dict[key]["H centro"] = Hcentro
+                altoAntena = report_dict[keyAntena]["Alto"]
+
                 if altoAntena != None:
-                    highPoint = hightPointTower(imageBBOX)
-                    if highPoint != None:
-                        px2cm, puntoMedio = calculate_hightOnTower(
-                            imageFrontalData, altoAntena
-                        )
-                        if px2cm != None and puntoMedio != None:
-                            dist = np.linalg.norm(
-                                np.array(puntoMedio) - np.array(highPoint)
+                    Hinicial = Hcentro - (altoAntena / 2)
+                    Hfinal = Hcentro + (altoAntena / 2)
+                    report_dict[key]["H inicial"] = Hinicial
+                    report_dict[key]["H final"] = Hfinal
+
+            else:
+                alturaTorre = input("Ingrese la altura de la torre en cm:")
+
+                for key in report_dict.keys():
+                    filename = report_dict[key]["Filename"]
+                    image_path = os.path.join(rootPath, f"{filename}.JPG")
+                    label_info = report_dict[key]["Label"]
+                    metadata = read_metadata(
+                        os.path.join(metadataPath, f"{filename}.txt")
+                    )
+                    yawDegrees = float(metadata["GimbalYawDegree"])
+                    modelo = metadata["Model"]
+                    imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
+                    imageWidth = imageFrontalData.shape[1]
+                    imageHeight = imageFrontalData.shape[0]
+                    imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
+                    altoAntena = report_dict[key]["Alto"]
+                    if altoAntena != None:
+                        highPoint = hightPointTower(imageBBOX)
+                        if highPoint != None:
+                            px2cm, puntoMedio = calculate_hightOnTower(
+                                imageFrontalData, altoAntena
                             )
-                            distCm = dist * px2cm
-                            Hcentro = int(alturaTorre) - int(distCm)
-                            Hinicial = Hcentro - (altoAntena / 2)
-                            Hfinal = Hcentro + (altoAntena / 2)
-                            report_dict[key]["H centro"] = Hcentro
-                            report_dict[key]["H inicial"] = Hinicial
-                            report_dict[key]["H final"] = Hfinal
+                            if px2cm != None and puntoMedio != None:
+                                dist = np.linalg.norm(
+                                    np.array(puntoMedio) - np.array(highPoint)
+                                )
+                                distCm = dist * px2cm
+                                Hcentro = int(alturaTorre) - int(distCm)
+                                Hinicial = Hcentro - (altoAntena / 2)
+                                Hfinal = Hcentro + (altoAntena / 2)
+                                report_dict[key]["H centro"] = Hcentro
+                                report_dict[key]["H inicial"] = Hinicial
+                                report_dict[key]["H final"] = Hfinal
 
             with open(f"torres/{task_name}/reporte.json", "w") as f:
                 json.dump(report_dict, f, indent=4)
