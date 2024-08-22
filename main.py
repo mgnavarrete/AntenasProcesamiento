@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     while True:
         print(
-            "\nSELECCIONE EL PASO A REALIZAR: \n 00. Descargar imágenes de CVAT \n 0. Pre-Proceso \n 1. Calcular Azimuth antenas \n 2. Calcular Ancho antenas \n 3. Calcular Alto antenas \n 4. Calcular Altura en Torre \n 5. Actualizar reporte desde excel \n 6. Subir reporte a S3 \n 7. Borrar archivos locales \n x. Salir del programa\n"
+            "\nSELECCIONE EL PASO A REALIZAR: \n 00. Descargar imágenes de CVAT \n 0. Pre-Proceso \n 1. Calcular Azimuth antenas \n 2. Calcular Ancho antenas \n 3. Calcular Alto antenas \n 4. Calcular Altura en Torre \n 5. Actualizar reporte desde excel \n 6. Subir reporte a S3 \n 7. Subir Imágenes de baja calidad \n 8. Borrar archivos locales \n x. Salir del programa\n"
         )
         step = input("Ingrese el paso a realizar: ")
 
@@ -427,6 +427,14 @@ if __name__ == "__main__":
                         metadataPath,
                     ) = getDirectories(task_name)
 
+                    lowImgCvat(
+                        AWS_ACCESS_KEY_ID,
+                        AWS_SECRET_ACCESS_KEY,
+                        AWS_DEFAULT_REGION,
+                        AWS_BUCKET,
+                        task_name,
+                    )
+
                     subirReporte(
                         AWS_ACCESS_KEY_ID,
                         AWS_SECRET_ACCESS_KEY,
@@ -442,6 +450,31 @@ if __name__ == "__main__":
                     print(f"Error al subir reporte a S3: {e}")
 
             elif step == "7":
+                try:
+
+                    levID, medID, task_name = taskInput(task_name)
+
+                    if os.path.exists(f"torres/{task_name}/train.txt"):
+                        lowImgCvat(
+                            AWS_ACCESS_KEY_ID,
+                            AWS_SECRET_ACCESS_KEY,
+                            AWS_DEFAULT_REGION,
+                            AWS_BUCKET,
+                            task_name,
+                        )
+                    else:
+                        lowImgS3(
+                            AWS_ACCESS_KEY_ID,
+                            AWS_SECRET_ACCESS_KEY,
+                            AWS_DEFAULT_REGION,
+                            AWS_BUCKET,
+                            task_name,
+                        )
+                    print("Imágenes de baja calidad subidas a S3 exitosamente!\n \n")
+                except Exception as e:
+                    print(f"Error al subir imágenes a S3: {e}")
+
+            elif step == "8":
                 print("\nHas seleccionado borrar los archivos locales")
                 print(
                     f"Se eliminarán los archivos de la task seleccionada, asegurate de haber terminado el procesamiento antes de continuar"

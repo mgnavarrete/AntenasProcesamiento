@@ -19,6 +19,7 @@ import pandas as pd
 from tkinter import filedialog
 import xlsxwriter
 import math
+from tqdm import tqdm
 
 
 def read_metadata(file_path):
@@ -1017,7 +1018,8 @@ def report2excelIMG(task_name, cropPath):
 
     # Determinar la columna 'bboxAntena'
     img_col = df.columns.get_loc("bboxAntena")
-
+    file_col = df.columns.get_loc("Filename")
+    worksheet.set_column(file_col, file_col, 30)
     # Agregar las imágenes en la columna 'bboxAntena'
     for row in range(
         1, len(df) + 1
@@ -1027,14 +1029,18 @@ def report2excelIMG(task_name, cropPath):
 
         # Verificar si la imagen existe y agregarla si es así
         try:
+            from PIL import Image
+
+            img = Image.open(img_path)
+            orig_width, orig_height = img.size
+            y_scale = 250 / orig_height
+            x_scale = y_scale  # Mantener la relación de aspecto
 
             worksheet.set_column(img_col, img_col, 35)
             worksheet.set_row(row, 200)
-            # Insertar la imagen en la celda específica
-            worksheet.embed_image(
-                row,
-                img_col,
-                img_path,
+            # Insertar la imagen en la celda específica con escalado
+            worksheet.insert_image(
+                row, img_col, img_path, {"x_scale": x_scale, "y_scale": y_scale}
             )
         except FileNotFoundError:
             print(f"Imagen no encontrada: {img_path}")
@@ -1168,3 +1174,141 @@ def subirReporte(
         print("No se encontraron las credenciales para AWS.")
     except Exception as e:
         print(f"Error al subir el reporte: {str(e)}")
+
+
+def lowImgCvat(
+    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION, AWS_BUCKET, task_name
+):
+
+    levID = task_name.split("-")[0]
+    medID = task_name.split("-")[1]
+
+    imagesPath = f"torres/{task_name}/obj_train_data/{levID}/{medID}/images"
+    lowImg = f"torres/{task_name}/obj_train_data/{levID}/{medID}/img_mala_calidad"
+
+    s3_lowImg = f"{levID}/{medID}/img_mala_calidad"
+
+    os.makedirs(lowImg, exist_ok=True)
+    images = os.listdir(imagesPath)
+
+    for filename in tqdm(images, desc="Bajando calidad IMG"):
+        if filename.endswith(".JPG"):
+
+            image_path = os.path.join(imagesPath, filename)
+            imgData = cv2.imread(image_path)
+            imgResized = cv2.resize(imgData, (870, 650))
+
+            cv2.imwrite(os.path.join(lowImg, filename), imgResized)
+
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_DEFAULT_REGION,
+    )
+
+    # Recorrer todos los archivos en la carpeta local
+    for root, dirs, files in os.walk(lowImg):
+        for file in tqdm(files, desc="Subiendo archivos a S3"):
+            # Ruta completa al archivo
+            local_path = os.path.join(root, file)
+
+            # Generar la clave para el S3
+            s3_key = os.path.relpath(
+                local_path, lowImg
+            )  # Obtener la ruta relativa desde la carpeta local
+            s3_full_key = os.path.join(s3_lowImg, s3_key)
+
+            # Subir el archivo al bucket S3
+            try:
+                s3.upload_file(local_path, AWS_BUCKET, s3_full_key)
+
+            except NoCredentialsError:
+                print("No se encontraron las credenciales para AWS.")
+            except Exception as e:
+                print(f"Error al subir el archivo {file}: {str(e)}")
+
+
+def lowImgS3(
+    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION, AWS_BUCKET, task_name
+):
+
+    rootPath = f"torres/{task_name}"
+    os.makedirs(rootPath, exist_ok=True)
+
+    levID = task_name.split("-")[0]
+    medID = task_name.split("-")[1]
+
+    imagesPath = f"torres/{task_name}/images"
+    os.makedirs(imagesPath, exist_ok=True)
+    lowImg = f"torres/{task_name}/img_mala_calidad"
+    os.makedirs(lowImg, exist_ok=True)
+
+    s3_original = f"{levID}/{medID}/images"
+
+    s3_lowImg = f"{levID}/{medID}/img_mala_calidad"
+
+    os.makedirs(lowImg, exist_ok=True)
+
+    # Descargar las imágenes de la carpeta S3_original
+    s3 = boto3.client(
+        "s3",
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_DEFAULT_REGION,
+    )
+
+    # Listar los objetos en la carpeta
+    objects = s3.list_objects_v2(Bucket=AWS_BUCKET, Prefix=s3_original)
+
+    if "Contents" in objects:
+        for obj in tqdm(objects["Contents"], desc="Descargando imágenes de S3"):
+            # Obtener la ruta del objeto en S3
+            s3_key = obj["Key"]
+
+            # Determinar la ruta de destino local
+            local_path = os.path.join(
+                imagesPath, s3_key[len(s3_original) + 1 :]
+            )  # +1 para eliminar el "/" inicial si es necesario
+
+            # Crear directorios locales si no existen
+            if not os.path.exists(os.path.dirname(local_path)):
+                os.makedirs(os.path.dirname(local_path))
+
+            # Descargar el archivo
+            s3.download_file(AWS_BUCKET, s3_key, local_path)
+
+    else:
+        print(f"No files found in {s3_original}.")
+
+    images = os.listdir(imagesPath)
+
+    for filename in tqdm(images, desc="Bajando calidad IMG"):
+        if filename.endswith(".JPG"):
+
+            image_path = os.path.join(imagesPath, filename)
+            imgData = cv2.imread(image_path)
+            imgResized = cv2.resize(imgData, (870, 650))
+
+            cv2.imwrite(os.path.join(lowImg, filename), imgResized)
+
+    # Recorrer todos los archivos en la carpeta local
+    for root, dirs, files in os.walk(lowImg):
+        for file in tqdm(files, desc="Subiendo archivos a S3"):
+            # Ruta completa al archivo
+            local_path = os.path.join(root, file)
+
+            # Generar la clave para el S3
+            s3_key = os.path.relpath(
+                local_path, lowImg
+            )  # Obtener la ruta relativa desde la carpeta local
+            s3_full_key = os.path.join(s3_lowImg, s3_key)
+
+            # Subir el archivo al bucket S3
+            try:
+                s3.upload_file(local_path, AWS_BUCKET, s3_full_key)
+
+            except NoCredentialsError:
+                print("No se encontraron las credenciales para AWS.")
+            except Exception as e:
+                print(f"Error al subir el archivo {file}: {str(e)}")
