@@ -283,7 +283,7 @@ def calculate_high(imageFrontal, pix2cm):
 
     if "None" in nBTN:
         print("El objeto no está visible")
-        return 0
+        return -1212
 
     distPix = np.linalg.norm(np.array(clicked_points[0]) - np.array(clicked_points[1]))
 
@@ -422,7 +422,7 @@ def calculate_width(imageCenital, imageFrontal, px_to_cm):
 
     if "None" in nBTN:
         print("El objeto no está visible")
-        return 0
+        return -1212
 
     # Calcular el ancho de la antena en píxeles y convertir a cm
     antenna_width_px = np.linalg.norm(
@@ -479,7 +479,7 @@ def calculate_angle(imageCenital, imageFrontal, yawDegreesCenital):
 
     if "None" in clicked_points:
         print("El objeto no está visible")
-        return 0
+        return -1212
 
     # Calcular el punto medio de los puntos de la antena
     antenna_midpoint = clicked_points[0]
@@ -579,7 +579,7 @@ def calculate_hightOnTower(imageFrontal, cmAntena):
 
     if "None" in nBTN:
         print("El objeto no está visible")
-        return 0, 0
+        return -1212, -1212
 
     # Calcular la distancia en píxeles del tubo
     print(clicked_points)
@@ -1010,7 +1010,7 @@ def report2excelIMG(task_name, cropPath):
     df["bboxAntena"] = ""
 
     # Guardar el DataFrame a un archivo Excel utilizando XlsxWriter
-    excel_path = f"torres/{task_name}/reporteExcel.xlsx"
+    excel_path = f"torres/{task_name}/reporte_{task_name}.xlsx"
     writer = pd.ExcelWriter(excel_path, engine="xlsxwriter")
     df.to_excel(writer, index=False, sheet_name="Sheet1")
     workbook = writer.book

@@ -187,7 +187,8 @@ if __name__ == "__main__":
                         angle = calculate_angle(
                             imageCenital, imageBBOX, -angle_to_north
                         )
-                        report_dict[key]["Azimuth"] = angle
+                        if angle != -1212:
+                            report_dict[key]["Azimuth"] = angle
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -232,7 +233,8 @@ if __name__ == "__main__":
                         imageHeight = imageFrontalData.shape[0]
                         imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
                         width = calculate_width(imageCenital, imageBBOX, pix2cm)
-                        report_dict[key]["Ancho"] = width
+                        if width != -1212:
+                            report_dict[key]["Ancho"] = width
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -281,8 +283,9 @@ if __name__ == "__main__":
                             pix2cm = select_width(imageBBOX, width)
                             if pix2cm != None:
                                 cmAlto = calculate_high(imageBBOX, pix2cm)
-                                print(f"Alto Antena: {cmAlto} cm")
-                                report_dict[key]["Alto"] = cmAlto
+                                if cmAlto != -1212:
+                                    print(f"Alto Antena: {cmAlto} cm")
+                                    report_dict[key]["Alto"] = cmAlto
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -338,14 +341,14 @@ if __name__ == "__main__":
 
                             pix2cm = select_cmRefT(imageGeneral, alturaTorre)
                             Hcentro = calculate_high(imageGeneral, pix2cm)
-                            report_dict[keyAntena]["H centro"] = Hcentro
-                            altoAntena = report_dict[keyAntena]["Alto"]
-
-                            if altoAntena != None:
+                            if Hcentro != -1212:
+                                report_dict[keyAntena]["H centro"] = Hcentro
+                                altoAntena = report_dict[keyAntena]["Alto"]
                                 Hinicial = Hcentro - (altoAntena / 2)
                                 Hfinal = Hcentro + (altoAntena / 2)
                                 report_dict[keyAntena]["H inicial"] = Hinicial
                                 report_dict[keyAntena]["H final"] = Hfinal
+
                         except Exception as e:
                             print(
                                 f"Error al calcular altura específica de la antena: {e}"
@@ -378,7 +381,8 @@ if __name__ == "__main__":
                                         px2cm, puntoMedio = calculate_hightOnTower(
                                             imageFrontalData, altoAntena
                                         )
-                                        if px2cm != None and puntoMedio != None:
+
+                                        if px2cm != -1212 and puntoMedio != -1212:
                                             dist = np.linalg.norm(
                                                 np.array(puntoMedio)
                                                 - np.array(highPoint)
