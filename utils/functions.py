@@ -110,11 +110,13 @@ nBTN = []
 
 def on_click(event):
     global clicked_points
-    if event.inaxes:
-        clicked_point = (event.xdata, event.ydata)
-        clicked_points.append(clicked_point)
-        plt.gca().add_patch(plt.Circle(clicked_point, radius=10, color="red"))
-        plt.draw()
+    if event.key == "c":
+        x, y = event.x, event.y
+        if event.inaxes:
+            clicked_point = (event.xdata, event.ydata)
+            clicked_points.append(clicked_point)
+            plt.gca().add_patch(plt.Circle(clicked_point, radius=10, color="red"))
+            plt.draw()
 
 
 def on_none_key_pressedW(event):
@@ -149,7 +151,7 @@ def select_width(imageCenital, tube_distance_cm):
     cid_key = plt.gcf().canvas.mpl_connect("key_press_event", on_none_key_pressedW)
 
     # Conectar el evento de clic
-    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
     # Esperar hasta que se hagan dos clics (para la antena)
     while len(clicked_points) < 2 and len(nBTN) < 1:
@@ -191,7 +193,7 @@ def select_cmRefT(imageCenital, tube_distance_cm):
     plt.axis("off")
 
     # Conectar el evento de clic
-    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
     # Esperar hasta que se hagan dos clics
     while len(clicked_points) < 2:
@@ -228,7 +230,7 @@ def select_cmRef(imageCenital, tube_distance_cm):
     plt.axis("off")
 
     # Conectar el evento de clic
-    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
     # Esperar hasta que se hagan dos clics
     while len(clicked_points) < 2:
@@ -270,7 +272,7 @@ def calculate_high(imageFrontal, pix2cm):
     cid_key = plt.gcf().canvas.mpl_connect("key_press_event", on_none_key_pressedW)
 
     # Conectar el evento de clic
-    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
     # Esperar hasta que se hagan dos clics (para la antena)
     while len(clicked_points) < 2 and len(nBTN) < 1:
@@ -323,7 +325,7 @@ def calculate_angle_and_width(imageCenital, imageFrontal, yawDegreesCenital, px_
     plt.axis("off")
 
     # Conectar el evento de clic
-    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
     # Esperar hasta que se hagan dos clics (para la antena)
     while len(clicked_points) < 2:
@@ -409,7 +411,7 @@ def calculate_width(imageCenital, imageFrontal, px_to_cm):
     cid_key = plt.gcf().canvas.mpl_connect("key_press_event", on_none_key_pressedW)
 
     # Conectar el evento de clic
-    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
     # Esperar hasta que se hagan dos clics (para la antena)
     while len(clicked_points) < 2 and len(nBTN) < 1:
@@ -466,7 +468,7 @@ def calculate_angle(imageCenital, imageFrontal, yawDegreesCenital):
     cid_key = plt.gcf().canvas.mpl_connect("key_press_event", on_none_key_pressed)
 
     # Conectar el evento de clic a subplot cenital
-    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
     # Esperar hasta que se haga un clic o se presione el botón
     while len(clicked_points) < 1:
@@ -528,7 +530,7 @@ def hightPointTower(imageFrontal):
     cid_key = plt.gcf().canvas.mpl_connect("key_press_event", on_none_key_pressed)
 
     # Conectar el evento de clic a subplot cenital
-    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
     # Esperar hasta que se haga un clic o se presione el botón
     while len(clicked_points) < 1:
@@ -566,7 +568,7 @@ def calculate_hightOnTower(imageFrontal, cmAntena):
     cid_key = plt.gcf().canvas.mpl_connect("key_press_event", on_none_key_pressedW)
 
     # Conectar el evento de clic
-    cid = plt.gcf().canvas.mpl_connect("button_press_event", on_click)
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
     # Esperar hasta que se hagan dos clics (para la antena)
     while len(clicked_points) < 2 and len(nBTN) < 1:
