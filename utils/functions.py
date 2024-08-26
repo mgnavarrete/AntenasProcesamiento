@@ -47,7 +47,7 @@ def find_task(client, task_name):
 
     if not tasks:
         raise ValueError(f"No se encontró la tarea con el nombre '{task_name}'")
-    return tasks[0]
+    return None
 
 
 def get_dataset(task, CVAT_HOST, CVAT_USERNAME, CVAT_PASSWORD):
@@ -945,18 +945,22 @@ def downloadZip(
 ):  # Buscar la tarea
     task = find_task(client, task_name)
 
-    # Obtener el dataset con lables e imagenes
-    get_dataset(task, CVAT_HOST, CVAT_USERNAME, CVAT_PASSWORD)
+    if task is None:
+        client.logout()
+        raise ValueError(f"No se encontró la tarea {task_name}")
+    else:
+        # Obtener el dataset con lables e imagenes
+        get_dataset(task, CVAT_HOST, CVAT_USERNAME, CVAT_PASSWORD)
 
-    # Mover archivo zip a carpeta torres
-    os.system(f"mv {task_name}.zip torres/")
+        # Mover archivo zip a carpeta torres
+        os.system(f"mv {task_name}.zip torres/")
 
-    # Cerrar cliente cvat
-    client.logout()
+        # Cerrar cliente cvat
+        client.logout()
 
-    # Correr unzip para descomprimir el archivo y que no haga print de lo que hace
-    print(f"Descomprimiendo el archivo {task_name}.zip...")
-    os.system(f"unzip torres/{task_name}.zip -d torres/{task_name}")
+        # Correr unzip para descomprimir el archivo y que no haga print de lo que hace
+        print(f"Descomprimiendo el archivo {task_name}.zip...")
+        os.system(f"unzip torres/{task_name}.zip -d torres/{task_name}")
 
 
 def taskInput(task_name):
