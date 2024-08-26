@@ -491,7 +491,7 @@ if __name__ == "__main__":
                         levID, medID, task_name = taskInput(task_name)
                         if not os.path.exists(f"torres/{task_name}/uploaded.txt"):
                             print("\n")
-                            print("IMPORTANTE")
+                            print("¡¡CUIDADO!!")
                             print(
                                 f"Se ha detectado que el reporte de {task_name} no ha sido subido a S3"
                             )
@@ -503,9 +503,12 @@ if __name__ == "__main__":
                                 print("Archivos locales eliminados!\n \n")
                         elif os.path.exists(f"torres/{task_name}/uploaded.txt"):
                             # Eliminar el archivo zip y la carpeta descomprimida
-                            os.system(f"rm -r torres/{task_name}")
-                            os.system(f"rm torres/{task_name}.zip")
-                            print("Archivos locales eliminados!\n \n")
+                            print("Estas a punto de eliminar los archivos locales")
+                            option3 = input("Estas seguro que deseas continuar? (y/N):")
+                            if option3 == "y":
+                                os.system(f"rm -r torres/{task_name}")
+                                os.system(f"rm torres/{task_name}.zip")
+                                print("Archivos locales eliminados!\n \n")
                     except Exception as e:
                         print(f"Error al eliminar archivos locales: {e}")
 
