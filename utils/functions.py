@@ -1016,7 +1016,7 @@ def report2excelIMG(task_name, cropPath):
     df["bboxAntena"] = ""
 
     # Guardar el DataFrame a un archivo Excel utilizando XlsxWriter
-    excel_path = f"torres/{task_name}/reporte_{task_name}.xlsx"
+    excel_path = f"torres/{task_name}/medidas.xlsx"
     writer = pd.ExcelWriter(excel_path, engine="xlsxwriter")
     df.to_excel(writer, index=False, sheet_name="Sheet1")
     workbook = writer.book
@@ -1054,35 +1054,6 @@ def report2excelIMG(task_name, cropPath):
 
     # Guardar los cambios en el archivo Excel
     writer._save()
-
-
-def report2excel(task_name):
-    inputReport = f"torres/{task_name}/reporte.json"
-
-    # Cargar los datos JSON
-    with open(inputReport) as f:
-        data = json.load(f)
-
-    # Convertir los datos JSON a un DataFrame
-    df = pd.DataFrame.from_dict(data, orient="index")
-
-    # Reemplazar todos los puntos con comas en el DataFrame
-    df = df.apply(
-        lambda x: (
-            x.astype(str).str.replace(".", ",")
-            if x.dtype in [int, float, "float64", "int64"]
-            else x
-        )
-    )
-
-    # Agregar columna ID como la primera columna
-    df.insert(0, "ID", df.index)
-
-    # Asignar ID del 0 al n
-    df["ID"] = range(len(df))
-
-    # Guardar el DataFrame a un archivo Excel
-    df.to_excel(f"torres/{task_name}/reporteExcel.xlsx", index=False)
 
 
 def csv_to_json(task_name):
