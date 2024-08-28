@@ -234,7 +234,7 @@ if __name__ == "__main__":
                         imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
                         width = calculate_width(imageCenital, imageBBOX, pix2cm)
                         if width != -1212:
-                            report_dict[key]["Ancho"] = width
+                            report_dict[key]["Ancho"] = width / 100
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -280,12 +280,13 @@ if __name__ == "__main__":
                         imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
                         width = report_dict[key]["Ancho"]
                         if width != None:
+                            width = width * 100
                             pix2cm = select_width(imageBBOX, width)
                             if pix2cm != None:
                                 cmAlto = calculate_high(imageBBOX, pix2cm)
                                 if cmAlto != -1212:
                                     print(f"Alto Antena: {cmAlto} cm")
-                                    report_dict[key]["Alto"] = cmAlto
+                                    report_dict[key]["Alto"] = cmAlto / 100
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -342,12 +343,13 @@ if __name__ == "__main__":
                             pix2cm = select_cmRefT(imageGeneral, alturaTorre)
                             Hcentro = calculate_high(imageGeneral, pix2cm)
                             if Hcentro != -1212:
-                                report_dict[keyAntena]["H centro"] = Hcentro
+                                report_dict[keyAntena]["H centro"] = Hcentro / 100
                                 altoAntena = report_dict[keyAntena]["Alto"]
+                                altoAntena = altoAntena * 100
                                 Hinicial = Hcentro - (altoAntena / 2)
                                 Hfinal = Hcentro + (altoAntena / 2)
-                                report_dict[keyAntena]["H inicial"] = Hinicial
-                                report_dict[keyAntena]["H final"] = Hfinal
+                                report_dict[keyAntena]["H inicial"] = Hinicial / 100
+                                report_dict[keyAntena]["H final"] = Hfinal / 100
 
                         except Exception as e:
                             print(
@@ -376,6 +378,7 @@ if __name__ == "__main__":
                                 )
                                 altoAntena = report_dict[key]["Alto"]
                                 if altoAntena != None:
+                                    altoAntena = altoAntena * 100
                                     highPoint = hightPointTower(imageBBOX)
                                     if highPoint != None:
                                         px2cm, puntoMedio = calculate_hightOnTower(
@@ -391,9 +394,11 @@ if __name__ == "__main__":
                                             Hcentro = int(alturaTorre) - int(distCm)
                                             Hinicial = Hcentro - (altoAntena / 2)
                                             Hfinal = Hcentro + (altoAntena / 2)
-                                            report_dict[key]["H centro"] = Hcentro
-                                            report_dict[key]["H inicial"] = Hinicial
-                                            report_dict[key]["H final"] = Hfinal
+                                            report_dict[key]["H centro"] = Hcentro / 100
+                                            report_dict[key]["H inicial"] = (
+                                                Hinicial / 100
+                                            )
+                                            report_dict[key]["H final"] = Hfinal / 100
                         except Exception as e:
                             print(
                                 f"Error al calcular altura general de las antenas: {e}"
@@ -430,14 +435,15 @@ if __name__ == "__main__":
                         cropPath,
                         metadataPath,
                     ) = getDirectories(task_name)
-
-                    lowImgCvat(
-                        AWS_ACCESS_KEY_ID,
-                        AWS_SECRET_ACCESS_KEY,
-                        AWS_DEFAULT_REGION,
-                        AWS_BUCKET,
-                        task_name,
-                    )
+                    option = input("Quieres subir las imágenes de baja calidad? (y/N):")
+                    if option == "y":
+                        lowImgCvat(
+                            AWS_ACCESS_KEY_ID,
+                            AWS_SECRET_ACCESS_KEY,
+                            AWS_DEFAULT_REGION,
+                            AWS_BUCKET,
+                            task_name,
+                        )
 
                     subirReporte(
                         AWS_ACCESS_KEY_ID,
