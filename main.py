@@ -233,6 +233,7 @@ if __name__ == "__main__":
                         imageHeight = imageFrontalData.shape[0]
                         imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
                         width = calculate_width(imageCenital, imageBBOX, pix2cm)
+                        print(f"Ancho Antena: {width} cm")
                         if width != -1212:
                             report_dict[key]["Ancho"] = width / 100
 
