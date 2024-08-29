@@ -323,61 +323,29 @@ if __name__ == "__main__":
                     )
 
                     if option == "y":
-                        print(
-                            "Desas calcular el alto de la antena con:\n 1. Ancho de la antena\n 2. Imagen General de la torre"
-                        )
-                        option2 = input("Ingresa opcion:")
-                        if option2 == "1":
-                            key = input("Ingrese el ID de la antena a calcular:")
-                            filename = report_dict[key]["Filename"]
-                            image_path = os.path.join(rootPath, f"{filename}.JPG")
-                            label_info = report_dict[key]["Label"]
-                            metadata = read_metadata(
-                                os.path.join(metadataPath, f"{filename}.txt")
-                            )
-                            yawDegrees = float(metadata["GimbalYawDegree"])
-                            modelo = metadata["Model"]
-                            imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
-                            imageWidth = imageFrontalData.shape[1]
-                            imageHeight = imageFrontalData.shape[0]
-                            imageBBOX = drawbbox(
-                                imageFrontalData, label_info, yawDegrees
-                            )
-                            width = report_dict[key]["Ancho"]
-                            if width != None:
-                                width = width * 100
-                                pix2cm = select_width(imageBBOX, width)
-                                if pix2cm != None:
-                                    cmAlto = calculate_high(imageBBOX, pix2cm)
-                                    if cmAlto != -1212:
-                                        print(f"Alto Antena: {cmAlto} cm")
-                                        report_dict[key]["Alto"] = cmAlto / 100
 
-                        elif option2 == "2":
-                            key = input("Ingrese el ID de la antena a calcular:")
-                            filename = report_dict[key]["Filename"]
-                            image_path = os.path.join(rootPath, f"{filename}.JPG")
-                            label_info = report_dict[key]["Label"]
-                            metadata = read_metadata(
-                                os.path.join(metadataPath, f"{filename}.txt")
-                            )
-                            yawDegrees = float(metadata["GimbalYawDegree"])
-                            modelo = metadata["Model"]
-                            imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
-                            imageWidth = imageFrontalData.shape[1]
-                            imageHeight = imageFrontalData.shape[0]
-                            imageBBOX = drawbbox(
-                                imageFrontalData, label_info, yawDegrees
-                            )
-                            width = report_dict[key]["Ancho"]
-                            if width != None:
-                                width = width * 100
-                                pix2cm = select_width(imageBBOX, width)
-                                if pix2cm != None:
-                                    cmAlto = calculate_high(imageBBOX, pix2cm)
-                                    if cmAlto != -1212:
-                                        print(f"Alto Antena: {cmAlto} cm")
-                                        report_dict[key]["Alto"] = cmAlto / 100
+                        key = input("Ingrese el ID de la antena a calcular:")
+                        filename = report_dict[key]["Filename"]
+                        image_path = os.path.join(rootPath, f"{filename}.JPG")
+                        label_info = report_dict[key]["Label"]
+                        metadata = read_metadata(
+                            os.path.join(metadataPath, f"{filename}.txt")
+                        )
+                        yawDegrees = float(metadata["GimbalYawDegree"])
+                        modelo = metadata["Model"]
+                        imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
+                        imageWidth = imageFrontalData.shape[1]
+                        imageHeight = imageFrontalData.shape[0]
+                        imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
+                        width = report_dict[key]["Ancho"]
+                        if width != None:
+                            width = width * 100
+                            pix2cm = select_width(imageBBOX, width)
+                            if pix2cm != None:
+                                cmAlto = calculate_high(imageBBOX, pix2cm)
+                                if cmAlto != -1212:
+                                    print(f"Alto Antena: {cmAlto} cm")
+                                    report_dict[key]["Alto"] = cmAlto / 100
 
                     else:
 
@@ -435,44 +403,89 @@ if __name__ == "__main__":
                     option = input(
                         "Deseas calcular de una antena en específico? (y/N):"
                     )
-
                     if option == "y":
-                        try:
-                            keyAntena = input("Ingrese el ID de la antena a calcular:")
-                            alturaTorre = int(
-                                input("Ingrese la altura de la torre en cm:")
-                            )
-                            if not os.path.exists(
-                                f"torres/{task_name}/general_view.jpg"
-                            ):
-                                imageGeneralPath = filedialog.askopenfilename(
-                                    title="Seleccione Vista General",
-                                    initialdir=f"torres/{task_name}",
-                                )
-                                imageGeneral = cv2.imread(imageGeneralPath)
-                                cv2.imwrite(
-                                    f"torres/{task_name}/general_view.jpg", imageGeneral
-                                )
-                            else:
-                                imageGeneral = cv2.imread(
-                                    f"torres/{task_name}/general_view.jpg"
-                                )
+                        print(
+                            "Desas calcular el alto en la torre con:\n 1. Alto de la antena\n 2. Imagen General de la torre"
+                        )
+                        option2 = input("Ingresa opción:")
 
-                            pix2cm = select_cmRefT(imageGeneral, alturaTorre)
-                            Hcentro = calculate_high(imageGeneral, pix2cm)
-                            if Hcentro != -1212:
-                                report_dict[keyAntena]["H centro"] = Hcentro / 100
-                                altoAntena = report_dict[keyAntena]["Alto"]
+                        if option2 == "1":
+                            key = input("Ingrese el ID de la antena a calcular:")
+                            filename = report_dict[key]["Filename"]
+                            image_path = os.path.join(rootPath, f"{filename}.JPG")
+                            label_info = report_dict[key]["Label"]
+                            metadata = read_metadata(
+                                os.path.join(metadataPath, f"{filename}.txt")
+                            )
+                            yawDegrees = float(metadata["GimbalYawDegree"])
+                            modelo = metadata["Model"]
+                            imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
+                            imageWidth = imageFrontalData.shape[1]
+                            imageHeight = imageFrontalData.shape[0]
+                            imageBBOX = drawbbox(
+                                imageFrontalData, label_info, yawDegrees
+                            )
+                            altoAntena = report_dict[key]["Alto"]
+                            if altoAntena != None:
                                 altoAntena = altoAntena * 100
-                                Hinicial = Hcentro - (altoAntena / 2)
-                                Hfinal = Hcentro + (altoAntena / 2)
-                                report_dict[keyAntena]["H inicial"] = Hinicial / 100
-                                report_dict[keyAntena]["H final"] = Hfinal / 100
+                                highPoint = hightPointTower(imageBBOX)
+                                if highPoint != None:
+                                    px2cm, puntoMedio = calculate_hightOnTower(
+                                        imageFrontalData, altoAntena
+                                    )
 
-                        except Exception as e:
-                            print(
-                                f"Error al calcular altura específica de la antena: {e}"
-                            )
+                                    if px2cm != -1212 and puntoMedio != -1212:
+                                        dist = np.linalg.norm(
+                                            np.array(puntoMedio) - np.array(highPoint)
+                                        )
+                                        distCm = dist * px2cm
+                                        Hcentro = int(alturaTorre) - int(distCm)
+                                        Hinicial = Hcentro - (altoAntena / 2)
+                                        Hfinal = Hcentro + (altoAntena / 2)
+                                        report_dict[key]["H centro"] = Hcentro / 100
+                                        report_dict[key]["H inicial"] = Hinicial / 100
+                                        report_dict[key]["H final"] = Hfinal / 100
+
+                        elif option2 == "2":
+                            try:
+                                keyAntena = input(
+                                    "Ingrese el ID de la antena a calcular:"
+                                )
+                                alturaTorre = int(
+                                    input("Ingrese la altura de la torre en cm:")
+                                )
+                                if not os.path.exists(
+                                    f"torres/{task_name}/general_view.jpg"
+                                ):
+                                    imageGeneralPath = filedialog.askopenfilename(
+                                        title="Seleccione Vista General",
+                                        initialdir=f"torres/{task_name}",
+                                    )
+                                    imageGeneral = cv2.imread(imageGeneralPath)
+                                    cv2.imwrite(
+                                        f"torres/{task_name}/general_view.jpg",
+                                        imageGeneral,
+                                    )
+                                else:
+                                    imageGeneral = cv2.imread(
+                                        f"torres/{task_name}/general_view.jpg"
+                                    )
+
+                                pix2cm = select_cmRefT(imageGeneral, alturaTorre)
+                                Hcentro = calculate_high(imageGeneral, pix2cm)
+                                if Hcentro != -1212:
+                                    report_dict[keyAntena]["H centro"] = Hcentro / 100
+                                    altoAntena = report_dict[keyAntena]["Alto"]
+                                    altoAntena = altoAntena * 100
+                                    Hinicial = Hcentro - (altoAntena / 2)
+                                    Hfinal = Hcentro + (altoAntena / 2)
+                                    report_dict[keyAntena]["H inicial"] = Hinicial / 100
+                                    report_dict[keyAntena]["H final"] = Hfinal / 100
+
+                            except Exception as e:
+                                print(
+                                    f"Error al calcular altura específica de la antena: {e}"
+                                )
                     else:
                         try:
                             alturaTorre = input("Ingrese la altura de la torre en cm:")
