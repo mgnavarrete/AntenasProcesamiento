@@ -400,6 +400,8 @@ if __name__ == "__main__":
                     with open(f"torres/{task_name}/reporte.json", "r") as f:
                         report_dict = json.load(f)
 
+                    alturaTorre = int(input("Ingrese la altura de la torre en cm:"))
+
                     option = input(
                         "Deseas calcular de una antena en específico? (y/N):"
                     )
@@ -411,6 +413,7 @@ if __name__ == "__main__":
 
                         if option2 == "1":
                             key = input("Ingrese el ID de la antena a calcular:")
+
                             filename = report_dict[key]["Filename"]
                             image_path = os.path.join(rootPath, f"{filename}.JPG")
                             label_info = report_dict[key]["Label"]
@@ -429,7 +432,7 @@ if __name__ == "__main__":
                             if altoAntena != None:
                                 altoAntena = altoAntena * 100
                                 highPoint = hightPointTower(imageBBOX)
-                                if highPoint != None:
+                                if highPoint != -1212:
                                     px2cm, puntoMedio = calculate_hightOnTower(
                                         imageFrontalData, altoAntena
                                     )
@@ -439,20 +442,30 @@ if __name__ == "__main__":
                                             np.array(puntoMedio) - np.array(highPoint)
                                         )
                                         distCm = dist * px2cm
-                                        Hcentro = int(alturaTorre) - int(distCm)
-                                        Hinicial = Hcentro - (altoAntena / 2)
-                                        Hfinal = Hcentro + (altoAntena / 2)
-                                        report_dict[key]["H centro"] = Hcentro / 100
-                                        report_dict[key]["H inicial"] = Hinicial / 100
-                                        report_dict[key]["H final"] = Hfinal / 100
+                                        if highPoint[1] > puntoMedio[1]:
+                                            Hcentro = int(alturaTorre) + int(distCm)
+                                            Hinicial = Hcentro - (altoAntena / 2)
+                                            Hfinal = Hcentro + (altoAntena / 2)
+                                            report_dict[key]["H centro"] = Hcentro / 100
+                                            report_dict[key]["H inicial"] = (
+                                                Hinicial / 100
+                                            )
+                                            report_dict[key]["H final"] = Hfinal / 100
+                                        else:
+                                            Hcentro = int(alturaTorre) - int(distCm)
+                                            Hinicial = Hcentro - (altoAntena / 2)
+                                            Hfinal = Hcentro + (altoAntena / 2)
+                                            report_dict[key]["H centro"] = Hcentro / 100
+                                            report_dict[key]["H inicial"] = (
+                                                Hinicial / 100
+                                            )
+                                            report_dict[key]["H final"] = Hfinal / 100
+                                        print(f"H centro: {Hcentro} cm")
 
                         elif option2 == "2":
                             try:
                                 keyAntena = input(
                                     "Ingrese el ID de la antena a calcular:"
-                                )
-                                alturaTorre = int(
-                                    input("Ingrese la altura de la torre en cm:")
                                 )
                                 if not os.path.exists(
                                     f"torres/{task_name}/general_view.jpg"
@@ -482,14 +495,13 @@ if __name__ == "__main__":
                                     report_dict[keyAntena]["H inicial"] = Hinicial / 100
                                     report_dict[keyAntena]["H final"] = Hfinal / 100
 
+                                print(f"H centro: {Hcentro} cm")
                             except Exception as e:
                                 print(
                                     f"Error al calcular altura específica de la antena: {e}"
                                 )
                     else:
                         try:
-                            alturaTorre = input("Ingrese la altura de la torre en cm:")
-
                             for key in report_dict.keys():
                                 filename = report_dict[key]["Filename"]
                                 image_path = os.path.join(rootPath, f"{filename}.JPG")
@@ -522,14 +534,33 @@ if __name__ == "__main__":
                                                 - np.array(highPoint)
                                             )
                                             distCm = dist * px2cm
-                                            Hcentro = int(alturaTorre) - int(distCm)
-                                            Hinicial = Hcentro - (altoAntena / 2)
-                                            Hfinal = Hcentro + (altoAntena / 2)
-                                            report_dict[key]["H centro"] = Hcentro / 100
-                                            report_dict[key]["H inicial"] = (
-                                                Hinicial / 100
-                                            )
-                                            report_dict[key]["H final"] = Hfinal / 100
+                                            if highPoint[1] > puntoMedio[1]:
+                                                Hcentro = int(alturaTorre) + int(distCm)
+                                                Hinicial = Hcentro - (altoAntena / 2)
+                                                Hfinal = Hcentro + (altoAntena / 2)
+                                                report_dict[key]["H centro"] = (
+                                                    Hcentro / 100
+                                                )
+                                                report_dict[key]["H inicial"] = (
+                                                    Hinicial / 100
+                                                )
+                                                report_dict[key]["H final"] = (
+                                                    Hfinal / 100
+                                                )
+                                            else:
+                                                Hcentro = int(alturaTorre) - int(distCm)
+                                                Hinicial = Hcentro - (altoAntena / 2)
+                                                Hfinal = Hcentro + (altoAntena / 2)
+                                                report_dict[key]["H centro"] = (
+                                                    Hcentro / 100
+                                                )
+                                                report_dict[key]["H inicial"] = (
+                                                    Hinicial / 100
+                                                )
+                                                report_dict[key]["H final"] = (
+                                                    Hfinal / 100
+                                                )
+                                            print(f"H centro: {Hcentro} cm")
                         except Exception as e:
                             print(
                                 f"Error al calcular altura general de las antenas: {e}"

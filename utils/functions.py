@@ -543,13 +543,13 @@ def hightPointTower(imageFrontal):
 
     if "None" in clicked_points:
         print("El objeto no está visible")
-        return 0
+        return -1212
 
     altoTorre = clicked_points[0]
     return altoTorre
 
 
-def calculate_hightOnTower(imageFrontal, cmAntena):
+def calculate_hightOnTower(imageFrontal, cmAltoAntena):
     global clicked_points
     clicked_points = []
 
@@ -570,7 +570,7 @@ def calculate_hightOnTower(imageFrontal, cmAntena):
     # Conectar el evento de clic
     cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
 
-    # Esperar hasta que se hagan dos clics (para la antena)
+    # Esperar hasta que se hagan dos clicks (para la antena)
     while len(clicked_points) < 2 and len(nBTN) < 1:
         plt.pause(0.1)
 
@@ -583,20 +583,13 @@ def calculate_hightOnTower(imageFrontal, cmAntena):
         print("El objeto no está visible")
         return -1212, -1212
 
-    # Calcular la distancia en píxeles del tubo
-    print(clicked_points)
-    tube_distance_px = np.linalg.norm(
+    # Calcular la distancia en píxeles
+    distance_px = np.linalg.norm(
         np.array(clicked_points[0]) - np.array(clicked_points[1])
     )
 
-    print(tube_distance_px)
-    # Medida real del tubo en cm (reemplaza esto con el valor conocido)
-    tube_distance_cm = cmAntena
-
     # Relación píxeles a cm
-    px_to_cm = tube_distance_cm / tube_distance_px
-
-    print(f"Relación píxeles a cm: {px_to_cm:.4f} cm/px")
+    px_to_cm = cmAltoAntena / distance_px
 
     punto_medio = (
         (clicked_points[0][0] + clicked_points[1][0]) / 2,
