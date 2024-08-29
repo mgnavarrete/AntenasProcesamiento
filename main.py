@@ -170,8 +170,12 @@ if __name__ == "__main__":
                     imageCenital, angle_to_north, pix2cm = getCenitalInfo(task_name)
                     with open(f"torres/{task_name}/reporte.json", "r") as f:
                         report_dict = json.load(f)
+                    option = input(
+                        "Deseas calcular de una antena en específico? (y/N):"
+                    )
 
-                    for key in report_dict.keys():
+                    if option == "y":
+                        key = input("Ingrese el ID de la antena a calcular:")
                         filename = report_dict[key]["Filename"]
                         image_path = os.path.join(rootPath, f"{filename}.JPG")
                         label_info = report_dict[key]["Label"]
@@ -189,6 +193,28 @@ if __name__ == "__main__":
                         )
                         if angle != -1212:
                             report_dict[key]["Azimuth"] = angle
+
+                    else:
+                        for key in report_dict.keys():
+                            filename = report_dict[key]["Filename"]
+                            image_path = os.path.join(rootPath, f"{filename}.JPG")
+                            label_info = report_dict[key]["Label"]
+                            metadata = read_metadata(
+                                os.path.join(metadataPath, f"{filename}.txt")
+                            )
+                            yawDegrees = float(metadata["GimbalYawDegree"])
+                            modelo = metadata["Model"]
+                            imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
+                            imageWidth = imageFrontalData.shape[1]
+                            imageHeight = imageFrontalData.shape[0]
+                            imageBBOX = drawbbox(
+                                imageFrontalData, label_info, yawDegrees
+                            )
+                            angle = calculate_angle(
+                                imageCenital, imageBBOX, -angle_to_north
+                            )
+                            if angle != -1212:
+                                report_dict[key]["Azimuth"] = angle
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -218,8 +244,12 @@ if __name__ == "__main__":
                     imageCenital, angle_to_north, pix2cm = getCenitalInfo(task_name)
                     with open(f"torres/{task_name}/reporte.json", "r") as f:
                         report_dict = json.load(f)
+                    option = input(
+                        "Deseas calcular de una antena en específico? (y/N):"
+                    )
 
-                    for key in report_dict.keys():
+                    if option == "y":
+                        key = input("Ingrese el ID de la antena a calcular:")
                         filename = report_dict[key]["Filename"]
                         image_path = os.path.join(rootPath, f"{filename}.JPG")
                         label_info = report_dict[key]["Label"]
@@ -236,6 +266,28 @@ if __name__ == "__main__":
                         print(f"Ancho Antena: {width} cm")
                         if width != -1212:
                             report_dict[key]["Ancho"] = width / 100
+
+                    else:
+
+                        for key in report_dict.keys():
+                            filename = report_dict[key]["Filename"]
+                            image_path = os.path.join(rootPath, f"{filename}.JPG")
+                            label_info = report_dict[key]["Label"]
+                            metadata = read_metadata(
+                                os.path.join(metadataPath, f"{filename}.txt")
+                            )
+                            yawDegrees = float(metadata["GimbalYawDegree"])
+                            modelo = metadata["Model"]
+                            imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
+                            imageWidth = imageFrontalData.shape[1]
+                            imageHeight = imageFrontalData.shape[0]
+                            imageBBOX = drawbbox(
+                                imageFrontalData, label_info, yawDegrees
+                            )
+                            width = calculate_width(imageCenital, imageBBOX, pix2cm)
+                            print(f"Ancho Antena: {width} cm")
+                            if width != -1212:
+                                report_dict[key]["Ancho"] = width / 100
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -271,7 +323,7 @@ if __name__ == "__main__":
                     )
 
                     if option == "y":
-                        keyAntena = input("Ingrese el ID de la antena a calcular:")
+                        key = input("Ingrese el ID de la antena a calcular:")
                         filename = report_dict[key]["Filename"]
                         image_path = os.path.join(rootPath, f"{filename}.JPG")
                         label_info = report_dict[key]["Label"]
