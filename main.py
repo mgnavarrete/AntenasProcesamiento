@@ -193,6 +193,10 @@ if __name__ == "__main__":
                         )
                         if angle != -1212:
                             report_dict[key]["Azimuth"] = angle
+                            with open(f"torres/{task_name}/reporte.json", "w") as f:
+                                json.dump(report_dict, f, indent=4)
+
+                            report2excelIMG(task_name, cropPath)
 
                     else:
                         for key in report_dict.keys():
@@ -215,6 +219,10 @@ if __name__ == "__main__":
                             )
                             if angle != -1212:
                                 report_dict[key]["Azimuth"] = angle
+                                with open(f"torres/{task_name}/reporte.json", "w") as f:
+                                    json.dump(report_dict, f, indent=4)
+
+                                report2excelIMG(task_name, cropPath)
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -266,6 +274,10 @@ if __name__ == "__main__":
                         print(f"Ancho Antena: {width} cm")
                         if width != -1212:
                             report_dict[key]["Ancho"] = width / 100
+                            with open(f"torres/{task_name}/reporte.json", "w") as f:
+                                json.dump(report_dict, f, indent=4)
+
+                            report2excelIMG(task_name, cropPath)
 
                     else:
 
@@ -288,6 +300,10 @@ if __name__ == "__main__":
                             print(f"Ancho Antena: {width} cm")
                             if width != -1212:
                                 report_dict[key]["Ancho"] = width / 100
+                                with open(f"torres/{task_name}/reporte.json", "w") as f:
+                                    json.dump(report_dict, f, indent=4)
+
+                                report2excelIMG(task_name, cropPath)
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -346,6 +362,12 @@ if __name__ == "__main__":
                                 if cmAlto != -1212:
                                     print(f"Alto Antena: {cmAlto} cm")
                                     report_dict[key]["Alto"] = cmAlto / 100
+                                    with open(
+                                        f"torres/{task_name}/reporte.json", "w"
+                                    ) as f:
+                                        json.dump(report_dict, f, indent=4)
+
+                                    report2excelIMG(task_name, cropPath)
 
                     else:
 
@@ -373,6 +395,10 @@ if __name__ == "__main__":
                                     if cmAlto != -1212:
                                         print(f"Alto Antena: {cmAlto} cm")
                                         report_dict[key]["Alto"] = cmAlto / 100
+                            with open(f"torres/{task_name}/reporte.json", "w") as f:
+                                json.dump(report_dict, f, indent=4)
+
+                            report2excelIMG(task_name, cropPath)
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)
@@ -461,6 +487,12 @@ if __name__ == "__main__":
                                             )
                                             report_dict[key]["H final"] = Hfinal / 100
                                         print(f"H centro: {Hcentro} cm")
+                                        with open(
+                                            f"torres/{task_name}/reporte.json", "w"
+                                        ) as f:
+                                            json.dump(report_dict, f, indent=4)
+
+                                        report2excelIMG(task_name, cropPath)
 
                         elif option2 == "2":
                             try:
@@ -496,6 +528,10 @@ if __name__ == "__main__":
                                     report_dict[keyAntena]["H final"] = Hfinal / 100
 
                                 print(f"H centro: {Hcentro} cm")
+                                with open(f"torres/{task_name}/reporte.json", "w") as f:
+                                    json.dump(report_dict, f, indent=4)
+
+                                report2excelIMG(task_name, cropPath)
                             except Exception as e:
                                 print(
                                     f"Error al calcular altura específica de la antena: {e}"
@@ -561,6 +597,12 @@ if __name__ == "__main__":
                                                     Hfinal / 100
                                                 )
                                             print(f"H centro: {Hcentro} cm")
+                                            with open(
+                                                f"torres/{task_name}/reporte.json", "w"
+                                            ) as f:
+                                                json.dump(report_dict, f, indent=4)
+
+                                            report2excelIMG(task_name, cropPath)
                         except Exception as e:
                             print(
                                 f"Error al calcular altura general de las antenas: {e}"
