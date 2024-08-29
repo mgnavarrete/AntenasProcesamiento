@@ -266,7 +266,12 @@ if __name__ == "__main__":
                     with open(f"torres/{task_name}/reporte.json", "r") as f:
                         report_dict = json.load(f)
 
-                    for key in report_dict.keys():
+                    option = input(
+                        "Deseas calcular de una antena en específico? (y/N):"
+                    )
+
+                    if option == "y":
+                        keyAntena = input("Ingrese el ID de la antena a calcular:")
                         filename = report_dict[key]["Filename"]
                         image_path = os.path.join(rootPath, f"{filename}.JPG")
                         label_info = report_dict[key]["Label"]
@@ -288,6 +293,33 @@ if __name__ == "__main__":
                                 if cmAlto != -1212:
                                     print(f"Alto Antena: {cmAlto} cm")
                                     report_dict[key]["Alto"] = cmAlto / 100
+
+                    else:
+
+                        for key in report_dict.keys():
+                            filename = report_dict[key]["Filename"]
+                            image_path = os.path.join(rootPath, f"{filename}.JPG")
+                            label_info = report_dict[key]["Label"]
+                            metadata = read_metadata(
+                                os.path.join(metadataPath, f"{filename}.txt")
+                            )
+                            yawDegrees = float(metadata["GimbalYawDegree"])
+                            modelo = metadata["Model"]
+                            imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
+                            imageWidth = imageFrontalData.shape[1]
+                            imageHeight = imageFrontalData.shape[0]
+                            imageBBOX = drawbbox(
+                                imageFrontalData, label_info, yawDegrees
+                            )
+                            width = report_dict[key]["Ancho"]
+                            if width != None:
+                                width = width * 100
+                                pix2cm = select_width(imageBBOX, width)
+                                if pix2cm != None:
+                                    cmAlto = calculate_high(imageBBOX, pix2cm)
+                                    if cmAlto != -1212:
+                                        print(f"Alto Antena: {cmAlto} cm")
+                                        report_dict[key]["Alto"] = cmAlto / 100
 
                     with open(f"torres/{task_name}/reporte.json", "w") as f:
                         json.dump(report_dict, f, indent=4)

@@ -984,7 +984,7 @@ def getCenitalInfo(task_name):
 
 
 def report2excelIMG(task_name, cropPath):
-    # verificar si existe el archivo uploaded.txt
+    # Verificar si existe el archivo uploaded.txt
     if os.path.exists(f"torres/{task_name}/uploaded.txt"):
         os.remove(f"torres/{task_name}/uploaded.txt")
 
@@ -997,14 +997,19 @@ def report2excelIMG(task_name, cropPath):
     # Convertir los datos JSON a un DataFrame
     df = pd.DataFrame.from_dict(data, orient="index")
 
-    # Reemplazar todos los puntos con comas en el DataFrame
-    df = df.apply(
-        lambda x: (
-            x.astype(str).str.replace(".", ",")
-            if x.dtype in [int, float, "float64", "int64"]
-            else x
-        )
-    )
+    # Función para manejar los valores float y None
+    def clean_value(value):
+        if value is None:
+            return ""
+        try:
+            return float(value)
+        except ValueError:
+            return value
+
+    # Aplicar la función a las columnas específicas
+    for col in ["Alto", "Ancho", "H centro", "H inicial", "H final", "Azimuth"]:
+        if col in df.columns:
+            df[col] = df[col].apply(clean_value)
 
     # Agregar columna ID como la primera columna
     df.insert(0, "ID", df.index)
@@ -1026,6 +1031,7 @@ def report2excelIMG(task_name, cropPath):
     img_col = df.columns.get_loc("bboxAntena")
     file_col = df.columns.get_loc("Filename")
     worksheet.set_column(file_col, file_col, 30)
+
     # Agregar las imágenes en la columna 'bboxAntena'
     for row in range(
         1, len(df) + 1
@@ -1062,46 +1068,40 @@ def csv_to_json(task_name):
         title="Selecciona el archivo CSV", initialdir=f"torres/{task_name}"
     )
 
+    # Load the Excel file
     data = pd.read_excel(csvPath, usecols=lambda column: column != "L")
 
-    # Replace NaN with None
+    # Replace NaN with None for the entire dataframe
     data = data.where(pd.notnull(data), None)
-    # si el modelo es Nan, se reemplaza por "-"
+
+    # Ensure the "Modelo" column replaces NaN with "-"
     data["Modelo"] = data["Modelo"].where(pd.notnull(data["Modelo"]), "-")
+
     report = {}
+
+    def clean_value(value):
+        if isinstance(value, str):
+            # Replace comma with dot for floats and strip spaces
+            value = value.replace(",", ".").strip()
+            try:
+                return float(value)
+            except ValueError:
+                return None
+        elif isinstance(value, (int, float)):
+            return float(value)
+        else:
+            return None
+
     # Create the report as a dictionary
     for index, row in data.iterrows():
+        # Clean and convert the specific columns
+        alto = clean_value(row["Alto"])
+        ancho = clean_value(row["Ancho"])
+        h_centro = clean_value(row["H centro"])
+        h_inicial = clean_value(row["H inicial"])
+        h_final = clean_value(row["H final"])
+        azimuth = clean_value(row["Azimuth"])
 
-        alto = (
-            float(str(row["Alto"]).replace(",", "."))
-            if not math.isnan(float(str(row["Alto"]).replace(",", ".")))
-            else None
-        )
-        ancho = (
-            float(str(row["Ancho"]).replace(",", "."))
-            if not math.isnan(float(str(row["Ancho"]).replace(",", ".")))
-            else None
-        )
-        h_centro = (
-            float(str(row["H centro"]).replace(",", "."))
-            if not math.isnan(float(str(row["H centro"]).replace(",", ".")))
-            else None
-        )
-        h_inicial = (
-            float(str(row["H inicial"]).replace(",", "."))
-            if not math.isnan(float(str(row["H inicial"]).replace(",", ".")))
-            else None
-        )
-        h_final = (
-            float(str(row["H final"]).replace(",", "."))
-            if not math.isnan(float(str(row["H final"]).replace(",", ".")))
-            else None
-        )
-        azimuth = (
-            float(str(row["Azimuth"]).replace(",", "."))
-            if not math.isnan(float(str(row["Azimuth"]).replace(",", ".")))
-            else None
-        )
         label_string = row["Label"]
 
         report[row["ID"]] = {
