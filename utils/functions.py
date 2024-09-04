@@ -523,7 +523,7 @@ def hightPointTower(imageFrontal):
     mng = plt.get_current_fig_manager()
 
     plt.imshow(cv2.cvtColor(imageFrontal, cv2.COLOR_BGR2RGB))
-    plt.title("Selecciona punto más alto de la torre")
+    plt.title("Selecciona punto de referencia en la")
     plt.axis("off")
 
     # Conectar el evento de tecla

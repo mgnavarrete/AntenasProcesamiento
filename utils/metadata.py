@@ -3,6 +3,7 @@ import json
 import subprocess
 import io
 from tqdm import tqdm
+import base64
 
 
 def get_string_meta_data(path):
@@ -18,6 +19,18 @@ def get_string_meta_data(path):
     if isinstance(data, list) and len(data) == 1:
         data = data[0]
     return data
+
+
+def extract_raw_thermal_image(data, output_path):
+    # Check if 'RawThermalImage' field exists
+    if "RawThermalImage" in data:
+        raw_thermal_data = data["RawThermalImage"]
+        # Save the raw thermal image as a PNG file
+        with open(output_path, "wb") as f:
+            f.write(base64.b64decode(raw_thermal_data))
+        print(f"Raw thermal image saved as {output_path}")
+    else:
+        print("Raw thermal image not found in metadata.")
 
 
 def get_metadata(root):

@@ -426,20 +426,20 @@ if __name__ == "__main__":
                     with open(f"torres/{task_name}/reporte.json", "r") as f:
                         report_dict = json.load(f)
 
-                    alturaTorre = int(input("Ingrese la altura de la torre en cm:"))
+                    alturaTorre = int(input("Ingrese la altura de referencia en cm: "))
 
                     option = input(
-                        "Deseas calcular de una antena en específico? (y/N):"
+                        "Deseas calcular de una antena en específico? (y/N): "
                     )
                     if option == "y":
                         print(
-                            "Desas calcular el alto en la torre con:\n 1. Alto de la antena\n 2. Imagen General de la torre"
+                            "\n Desas calcular el alto en la torre con:\n\n 1. Alto de la antena\n 2. Imagen General de la torre"
                         )
-                        option2 = input("Ingresa opción:")
+                        option2 = input("\nIngresa opción: ")
 
                         if option2 == "1":
-                            key = input("Ingrese el ID de la antena a calcular:")
 
+                            key = input("Ingrese el ID de la antena a calcular:")
                             filename = report_dict[key]["Filename"]
                             image_path = os.path.join(rootPath, f"{filename}.JPG")
                             label_info = report_dict[key]["Label"]
@@ -464,10 +464,13 @@ if __name__ == "__main__":
                                     )
 
                                     if px2cm != -1212 and puntoMedio != -1212:
-                                        dist = np.linalg.norm(
-                                            np.array(puntoMedio) - np.array(highPoint)
-                                        )
+                                        # Calcular solo la distancia en eje y
+                                        dist = abs(puntoMedio[1] - highPoint[1])
                                         distCm = dist * px2cm
+                                        # dist = np.linalg.norm(
+                                        #     np.array(puntoMedio) - np.array(highPoint)
+                                        # )
+                                        # distCm = dist * px2cm
                                         if highPoint[1] > puntoMedio[1]:
                                             Hcentro = int(alturaTorre) + int(distCm)
                                             Hinicial = Hcentro - (altoAntena / 2)
@@ -565,10 +568,7 @@ if __name__ == "__main__":
                                         )
 
                                         if px2cm != -1212 and puntoMedio != -1212:
-                                            dist = np.linalg.norm(
-                                                np.array(puntoMedio)
-                                                - np.array(highPoint)
-                                            )
+                                            dist = abs(puntoMedio[1] - highPoint[1])
                                             distCm = dist * px2cm
                                             if highPoint[1] > puntoMedio[1]:
                                                 Hcentro = int(alturaTorre) + int(distCm)
