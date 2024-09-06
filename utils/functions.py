@@ -695,7 +695,7 @@ def detectImg(imgPath, labelPath, cropPath, IDantena):
 
 def fixDistor(image, model):
 
-    if model == "MAVIC2-ENTERPRISE-ADVANCED":
+    if model == "MAVIC2-ENTERPRISE-ADVANCEDt":
         fix_image = undistort_m2ea_th(image)
     elif model == "XT2":
         fix_image = undistort_xt2(image)
@@ -704,7 +704,7 @@ def fixDistor(image, model):
     elif model == "M3T":
         fix_image = undistort_m3e_th(image)
     else:
-        print("CÁMARA NO DEFINIDA")
+        # print("CÁMARA NO DEFINIDA")
         return image
 
     return fix_image
