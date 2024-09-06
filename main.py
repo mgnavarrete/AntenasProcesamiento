@@ -541,7 +541,12 @@ if __name__ == "__main__":
                                 )
                     else:
                         try:
-                            for key in report_dict.keys():
+                            initialkey = input(
+                                "Ingrese el ID de la antena inicial a calcular:"
+                            )
+                            # report_dict.keys()
+                            for key in range(int(initialkey), len(report_dict.keys())):
+                                key = str(key)
                                 filename = report_dict[key]["Filename"]
                                 image_path = os.path.join(rootPath, f"{filename}.JPG")
                                 label_info = report_dict[key]["Label"]
