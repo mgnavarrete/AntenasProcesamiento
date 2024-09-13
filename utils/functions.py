@@ -141,6 +141,8 @@ def select_width(imageCenital, tube_distance_cm):
     # Crear una figura en pantalla completa
     fig = plt.figure(figsize=(10, 10))
     mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
 
     # Mostrar la imagen cenital
     plt.imshow(cv2.cvtColor(imageCenital, cv2.COLOR_BGR2RGB))
@@ -186,6 +188,8 @@ def select_cmRefT(imageCenital, tube_distance_cm):
     # Crear una figura en pantalla completa
     fig = plt.figure(figsize=(10, 10))
     mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
 
     # Mostrar la imagen cenital
     plt.imshow(cv2.cvtColor(imageCenital, cv2.COLOR_BGR2RGB))
@@ -223,6 +227,8 @@ def select_cmRef(imageCenital, tube_distance_cm):
     # Crear una figura en pantalla completa
     fig = plt.figure(figsize=(10, 10))
     mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
 
     # Mostrar la imagen cenital
     plt.imshow(cv2.cvtColor(imageCenital, cv2.COLOR_BGR2RGB))
@@ -262,6 +268,8 @@ def calculate_high(imageFrontal, pix2cm):
     # Crear una figura en pantalla completa
     fig = plt.figure(figsize=(10, 10))
     mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
 
     # Mostrar la imagen cenital
     plt.imshow(cv2.cvtColor(imageFrontal, cv2.COLOR_BGR2RGB))
@@ -311,6 +319,8 @@ def calculate_angle_and_width(imageCenital, imageFrontal, yawDegreesCenital, px_
     # Crear una figura en pantalla completa
     fig = plt.figure(figsize=(20, 10))
     mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
 
     # Mostrar la imagen frontal
     plt.subplot(1, 2, 2)
@@ -394,6 +404,8 @@ def calculate_width(imageCenital, imageFrontal, px_to_cm):
     # Crear una figura en pantalla completa
     fig = plt.figure(figsize=(20, 10))
     mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
 
     # Mostrar la imagen frontal
     plt.subplot(1, 2, 2)
@@ -451,6 +463,9 @@ def calculate_angle(imageCenital, imageFrontal, yawDegreesCenital):
     # Crear una figura en pantalla completa
     fig, ax = plt.subplots(figsize=(20, 10))
     mng = plt.get_current_fig_manager()
+
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
 
     # Mostrar la imagen frontal
     plt.subplot(1, 2, 2)
@@ -521,6 +536,8 @@ def hightPointTower(imageFrontal):
     # Crear una figura en pantalla completa
     fig = plt.figure(figsize=(20, 10))
     mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
 
     plt.imshow(cv2.cvtColor(imageFrontal, cv2.COLOR_BGR2RGB))
     plt.title("Selecciona punto de referencia en la")
@@ -558,6 +575,8 @@ def calculate_hightOnTower(imageFrontal, cmAltoAntena):
     # Crear una figura en pantalla completa
     fig = plt.figure(figsize=(10, 10))
     mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
 
     # Mostrar la imagen cenital
     plt.imshow(cv2.cvtColor(imageFrontal, cv2.COLOR_BGR2RGB))
