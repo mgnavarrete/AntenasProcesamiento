@@ -138,8 +138,6 @@ def select_width(imageCenital, tube_distance_cm):
     global clicked_points
     clicked_points = []
 
-    # Crear una figura en pantalla completa
-    fig = plt.figure(figsize=(10, 10))
     mng = plt.get_current_fig_manager()
     # Poner en pantalla completa de forma automática
     mng.full_screen_toggle()
@@ -185,8 +183,6 @@ def select_cmRefT(imageCenital, tube_distance_cm):
     global clicked_points
     clicked_points = []
 
-    # Crear una figura en pantalla completa
-    fig = plt.figure(figsize=(10, 10))
     mng = plt.get_current_fig_manager()
     # Poner en pantalla completa de forma automática
     mng.full_screen_toggle()
@@ -224,8 +220,6 @@ def select_cmRef(imageCenital, tube_distance_cm):
     global clicked_points
     clicked_points = []
 
-    # Crear una figura en pantalla completa
-    fig = plt.figure(figsize=(10, 10))
     mng = plt.get_current_fig_manager()
     # Poner en pantalla completa de forma automática
     mng.full_screen_toggle()
@@ -265,8 +259,6 @@ def calculate_high(imageFrontal, pix2cm):
     global nBTN
     nBTN = []
 
-    # Crear una figura en pantalla completa
-    fig = plt.figure(figsize=(10, 10))
     mng = plt.get_current_fig_manager()
     # Poner en pantalla completa de forma automática
     mng.full_screen_toggle()
@@ -316,8 +308,6 @@ def calculate_angle_and_width(imageCenital, imageFrontal, yawDegreesCenital, px_
         2,
     )
 
-    # Crear una figura en pantalla completa
-    fig = plt.figure(figsize=(20, 10))
     mng = plt.get_current_fig_manager()
     # Poner en pantalla completa de forma automática
     mng.full_screen_toggle()
@@ -401,8 +391,6 @@ def calculate_width(imageCenital, imageFrontal, px_to_cm):
         2,
     )
 
-    # Crear una figura en pantalla completa
-    fig = plt.figure(figsize=(20, 10))
     mng = plt.get_current_fig_manager()
     # Poner en pantalla completa de forma automática
     mng.full_screen_toggle()
@@ -460,8 +448,6 @@ def calculate_angle(imageCenital, imageFrontal, yawDegreesCenital):
         2,
     )
 
-    # Crear una figura en pantalla completa
-    fig, ax = plt.subplots(figsize=(20, 10))
     mng = plt.get_current_fig_manager()
 
     # Poner en pantalla completa de forma automática
@@ -533,8 +519,7 @@ def calculate_angle(imageCenital, imageFrontal, yawDegreesCenital):
 def hightPointTower(imageFrontal):
     global clicked_points
     clicked_points = []
-    # Crear una figura en pantalla completa
-    fig = plt.figure(figsize=(20, 10))
+
     mng = plt.get_current_fig_manager()
     # Poner en pantalla completa de forma automática
     mng.full_screen_toggle()
@@ -572,8 +557,7 @@ def calculate_hightOnTower(imageFrontal, cmAltoAntena):
 
     global nBTN
     nBTN = []
-    # Crear una figura en pantalla completa
-    fig = plt.figure(figsize=(10, 10))
+
     mng = plt.get_current_fig_manager()
     # Poner en pantalla completa de forma automática
     mng.full_screen_toggle()
