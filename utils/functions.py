@@ -1157,9 +1157,9 @@ def lowImgCvat(
     medID = task_name.split("-")[1]
 
     imagesPath = f"torres/{task_name}/obj_train_data/{levID}/{medID}/images"
-    lowImg = f"torres/{task_name}/obj_train_data/{levID}/{medID}/img_mala_calidad"
+    lowImg = f"torres/{task_name}/obj_train_data/{levID}/{medID}/comprimida"
 
-    s3_lowImg = f"{levID}/{medID}/img_mala_calidad"
+    s3_lowImg = f"{levID}/{medID}/comprimida"
 
     os.makedirs(lowImg, exist_ok=True)
     images = os.listdir(imagesPath)
@@ -1214,12 +1214,12 @@ def lowImgS3(
 
     imagesPath = f"torres/{task_name}/images"
     os.makedirs(imagesPath, exist_ok=True)
-    lowImg = f"torres/{task_name}/img_mala_calidad"
+    lowImg = f"torres/{task_name}/comprimida"
     os.makedirs(lowImg, exist_ok=True)
 
     s3_original = f"{levID}/{medID}/images"
 
-    s3_lowImg = f"{levID}/{medID}/img_mala_calidad"
+    s3_lowImg = f"{levID}/{medID}/comprimida"
 
     os.makedirs(lowImg, exist_ok=True)
 
