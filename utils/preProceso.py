@@ -1,7 +1,29 @@
 from utils.functions import *
 import os
+from utils.saveGeoMatriz import *
 from tkinter import filedialog
+import cv2
+import numpy as np
+import math
 
+
+def calculate_direction_angles(image_angle):
+   
+    directions = {
+        "Norte": 0,
+        "Sur": 180,
+        "Este": 90,
+        "Oeste": 270
+    }
+    
+    angles_in_image = {}
+    
+    for direction, real_angle in directions.items():
+        # Restar la orientación de la imagen para obtener el ángulo relativo
+        relative_angle = (real_angle - image_angle) % 360
+        angles_in_image[direction] = relative_angle
+    
+    return angles_in_image
 
 def preProceso(task_name):
 
@@ -30,12 +52,52 @@ def preProceso(task_name):
             metadataPath, filenameCenital.replace(".JPG", ".txt")
         )
         imageCenital = cv2.imread(imageCenitalPath)
+        imageCenitalRaw = imageCenital.copy()
         metadataCenital = read_metadata(metadataPathCenital)
+ 
+
         yawDegreesCenital = float(metadataCenital["GimbalYawDegree"])
         modelo = metadataCenital["Model"]
         print(f"Modelo: {modelo}")
-        imageCenital = fixDistor(imageCenital, modelo)
+        # imageCenital = fixDistor(imageCenital, modelo)
         angle_to_north = -yawDegreesCenital
+        
+        center = select_center(imageCenital)
+       
+
+       # Ajustar el ángulo para que 0° sea el Norte real
+        angleTopimg = (yawDegreesCenital + 360) % 360
+        print(f"Angle top img: {angleTopimg}")
+        
+        angles_in_image = calculate_direction_angles(angleTopimg)
+        print(f"Angulos en la imagen: {angles_in_image}")
+
+
+        # Calcular posiciones de los puntos cardinales
+        north_pos = get_point(angles_in_image["Norte"], center)
+        south_pos = get_point(angles_in_image["Sur"], center)
+        east_pos = get_point(angles_in_image["Este"], center)
+        west_pos = get_point(angles_in_image["Oeste"], center)
+        
+        north_angle_real = 0
+        south_angle_real = 180
+        east_angle_real = 90
+        west_angle_real = 270
+
+        # Dibujar líneas en la imagen para cada punto cardinal
+
+        cv2.line(imageCenital, center, north_pos, (0, 0, 255), 15)  # Norte (rojo)
+        cv2.line(imageCenital, center, south_pos, (0, 255, 255), 15)  # Sur (amarillo)
+        cv2.line(imageCenital, center, east_pos, (255, 0, 0), 15)  # Este (azul)
+        cv2.line(imageCenital, center, west_pos, (0, 255, 0), 15)  # Oeste (verde)
+
+        # Etiquetas de los puntos cardinales con los ángulos corregidos
+        cv2.putText(imageCenital, "N ({:.1f}), ({:.1f})".format(north_angle_real, angles_in_image["Norte"]), north_pos, cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 15)
+        cv2.putText(imageCenital, "S ({:.1f}), ({:.1f})".format(south_angle_real, angles_in_image["Sur"]), south_pos, cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 255, 255), 15)
+        cv2.putText(imageCenital, "E ({:.1f}), ({:.1f})".format(east_angle_real, angles_in_image["Este"]), east_pos, cv2.FONT_HERSHEY_SIMPLEX, 5, (255, 0, 0), 15)
+        cv2.putText(imageCenital, "O ({:.1f}), ({:.1f})".format(west_angle_real, angles_in_image["Oeste"]), west_pos, cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 255, 0), 15)
+
+        
         pix2cm = 0
         print("Calculando relación pixeles a cm...")
         cmRef = int(
@@ -45,9 +107,17 @@ def preProceso(task_name):
 
         # Guardar imagen cenital y metadata en carpeta task_name con nombre cental_view.jpg y cenital_view.txt
         cv2.imwrite(f"torres/{task_name}/cenital_view.jpg", imageCenital)
+        cv2.imwrite(f"torres/{task_name}/cenital_view_raw.jpg", imageCenitalRaw)
 
         # Guardar angle_to_north y pix2cm en un dict
-        infoCenital = {"angle_to_north": angle_to_north, "pix2cm": pix2cm}
+        infoCenital = {"angle_to_north": angle_to_north, 
+                       "pix2cm": pix2cm, 
+                       "center": center,
+                       "angleTopimg": angleTopimg,
+                       'imgAngles': [angles_in_image["Norte"], angles_in_image["Sur"], angles_in_image["Este"], angles_in_image["Oeste"]],
+                       "realAngles": [north_angle_real, south_angle_real, east_angle_real, west_angle_real],
+                       "allPos": [north_pos, south_pos, east_pos, west_pos]}
+        
         with open(f"torres/{task_name}/cenital_view.json", "w") as f:
             json.dump(infoCenital, f)
 

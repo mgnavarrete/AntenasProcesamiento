@@ -1,7 +1,7 @@
 import os
 from tkinter import filedialog
 from utils.functions import *
-
+import shutil
 import json
 from dotenv import load_dotenv
 import cv2
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     while True:
         print(
-            "\nSELECCIONE EL PASO A REALIZAR: \n 00. Descargar imágenes de CVAT \n 0. Pre-Proceso \n 1. Calcular Azimuth antenas \n 2. Calcular Ancho antenas \n 3. Calcular Alto antenas \n 4. Calcular Altura en Torre \n 5. Actualizar reporte desde excel \n 6. Subir reporte a S3 \n 7. Subir Imágenes de baja calidad \n 8. Borrar archivos locales \n x. Salir del programa\n"
+            "\nSELECCIONE EL PASO A REALIZAR: \n 00. Descargar imágenes de CVAT \n 0. Pre-Proceso \n 1. Calcular Azimuth antenas \n 2. Calcular Ancho antenas \n 3. Calcular Alto antenas \n 4. Calcular Altura en Torre \n 5. Actualizar reporte desde excel \n 6. Subir reporte a S3 \n 7. Subir Imágenes de baja calidad \n 8. Calcular Caras Torre \n 9. Borrar archivos locales \n x. Salir del programa\n"
         )
         step = input("Ingrese el paso a realizar: ")
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
                         metadataPath,
                     ) = getDirectories(task_name)
 
-                    imageCenital, angle_to_north, pix2cm = getCenitalInfo(task_name)
+                    imageCenital, center, angle_to_north, pix2cm, allPos, imgAngles, realAngles, angleTopimg = getCenitalInfo(task_name)
                     with open(f"torres/{task_name}/reporte.json", "r") as f:
                         report_dict = json.load(f)
                     option = input(
@@ -78,11 +78,16 @@ if __name__ == "__main__":
                         imageWidth = imageFrontalData.shape[1]
                         imageHeight = imageFrontalData.shape[0]
                         imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
-                        angle = calculate_angle(
-                            imageCenital, imageBBOX, -angle_to_north
+                        angle, px, py = calculate_angle(
+                            imageCenital, imageBBOX, center, angleTopimg
                         )
+                        print(f"Punto: {px}, {py}")
+                        print(f"Ángulo {key}: {angle:.1f}°")
                         if angle != -1212:
                             report_dict[key]["Azimuth"] = angle
+                            
+                            report_dict[key]["Pointx"] = int(px)
+                            report_dict[key]["Pointy"] = int(py)
                             with open(f"torres/{task_name}/reporte.json", "w") as f:
                                 json.dump(report_dict, f, indent=4)
 
@@ -101,14 +106,17 @@ if __name__ == "__main__":
                             imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
                             imageWidth = imageFrontalData.shape[1]
                             imageHeight = imageFrontalData.shape[0]
-                            imageBBOX = drawbbox(
-                                imageFrontalData, label_info, yawDegrees
-                            )
-                            angle = calculate_angle(
-                                imageCenital, imageBBOX, -angle_to_north
-                            )
+                            imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
+                            angle, px, py = calculate_angle(
+                            imageCenital, imageBBOX, center, angleTopimg
+                        )
+                            print(f"Punto: {px}, {py}")
+                            print(f"Ángulo {key}: {angle:.1f}°")
                             if angle != -1212:
                                 report_dict[key]["Azimuth"] = angle
+                                
+                                report_dict[key]["Pointx"] = int(px)
+                                report_dict[key]["Pointy"] = int(py)
                                 with open(f"torres/{task_name}/reporte.json", "w") as f:
                                     json.dump(report_dict, f, indent=4)
 
@@ -139,7 +147,7 @@ if __name__ == "__main__":
                         metadataPath,
                     ) = getDirectories(task_name)
 
-                    imageCenital, angle_to_north, pix2cm = getCenitalInfo(task_name)
+                    imageCenital, center, angle_to_north, pix2cm, allPos, imgAngles, realAngles, angleTopimg = getCenitalInfo(task_name)
                     with open(f"torres/{task_name}/reporte.json", "r") as f:
                         report_dict = json.load(f)
                     option = input(
@@ -220,7 +228,7 @@ if __name__ == "__main__":
                         metadataPath,
                     ) = getDirectories(task_name)
 
-                    imageCenital, angle_to_north, pix2cm = getCenitalInfo(task_name)
+                    imageCenital, center, angle_to_north, pix2cm, allPos, imgAngles, realAngles, angleTopimg = getCenitalInfo(task_name)
                     with open(f"torres/{task_name}/reporte.json", "r") as f:
                         report_dict = json.load(f)
 
@@ -312,7 +320,7 @@ if __name__ == "__main__":
                         cropPath,
                         metadataPath,
                     ) = getDirectories(task_name)
-                    imageCenital, angle_to_north, pix2cm = getCenitalInfo(task_name)
+                    imageCenital, center, angle_to_north, pix2cm, allPos, imgAngles, realAngles, angleTopimg = getCenitalInfo(task_name)
                     with open(f"torres/{task_name}/reporte.json", "r") as f:
                         report_dict = json.load(f)
 
@@ -584,6 +592,142 @@ if __name__ == "__main__":
                     print(f"Error al subir imágenes a S3: {e}")
 
             elif step == "8":
+                print("\nHas seleccionado calcular Caras Torre")
+                try:
+                    levID, medID, task_name = taskInput(task_name)
+                    (
+                        rootPath,
+                        imagesPath,
+                        labelsPath,
+                        detectionsPath,
+                        s3_labels,
+                        s3_detections,
+                        s3_reporte,
+                        filenames,
+                        cropPath,
+                        metadataPath,
+                    ) = getDirectories(task_name)
+                     
+                    cantCaras = input("Ingrese la cantidad de caras a calcular: ")
+
+                    imageCenital, center, angle_to_north, pix2cm, allPos, imgAngles, realAngles, angleTopimg = getCenitalInfo(task_name)                                   
+                    imageCenitalRaw = cv2.imread(f"torres/{task_name}/cenital_view_raw.jpg")  
+          
+                    # Dubijar circulo verde en el centro de la imagen                  
+                    cv2.circle(imageCenitalRaw, center, 1000, (0, 255, 0), 15)
+           
+                    caras = get_caras_torre(imageCenitalRaw, imgAngles, center, cantCaras, angleTopimg)
+                    print(f"Caras Torre: {caras}")
+                    nameCaras = ["A", "B", "C", "D"]
+                    camaraJSON = {}
+                    for i, cara in enumerate(caras):
+                        point1 = get_point(cara[0][0], center)
+                        point2 = get_point(cara[1][0], center)
+                        puntoMediox = (point1[0] + point2[0]) / 2
+                        puntoMedioy = (point1[1] + point2[1]) / 2
+                        
+                        # Dibujar líneas en la imagen para cada punto cardinal
+                        cv2.line(imageCenitalRaw, center, point1, (0, 0, 255), 15)  
+                        cv2.line(imageCenitalRaw, center, point2, (0, 0, 255), 15)  
+                        
+                        # Dibujar angulo en la imagen
+                        cv2.putText(imageCenitalRaw, nameCaras[i], (int(puntoMediox), int(puntoMedioy)), cv2.FONT_HERSHEY_SIMPLEX, 5, (255, 0, 0), 15)
+                        cv2.putText(imageCenitalRaw, "({:.1f})".format(cara[0][1]), point1, cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 15)
+                        cv2.putText(imageCenitalRaw, "({:.1f})".format(cara[1][1]), point2, cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 15)
+                        camaraJSON[nameCaras[i]] = {"name": nameCaras[i], "angle_img": cara[0], "angle_real": cara[1]}
+                  
+                    cv2.imwrite(f"torres/{task_name}/cenital_view_caras.jpg", imageCenitalRaw)
+                    
+                    with open(f"torres/{task_name}/caras.json", "w") as f:
+                        json.dump(camaraJSON, f, indent=4)
+                    with open(f"torres/{task_name}/reporte.json", "r") as f:
+                        report_dict = json.load(f)
+
+                    for key in tqdm(report_dict.keys(), desc="Calculando Caras"):
+                        
+                        if report_dict[key]["Tipo"] == "RF" or report_dict[key]["Tipo"] == "Micro Wave":
+                          
+                            filename = report_dict[key]["Filename"]
+                            image_path = os.path.join(rootPath, f"{filename}.JPG")
+                            label_info = report_dict[key]["Label"]
+                            metadata = read_metadata(
+                                os.path.join(metadataPath, f"{filename}.txt")
+                            )
+                            yawDegrees = float(metadata["GimbalYawDegree"])
+                            # print("Antena: ", key)
+                            # print(f"Yaw Degrees: {yawDegrees}")
+                            if yawDegrees >= 0:
+                                yaw_opuesto = yawDegrees + 180
+                            else:
+                                yaw_opuesto = yawDegrees + 180
+                                if yaw_opuesto > 180:
+                                    yaw_opuesto -= 360
+                                
+                            
+                            # print(f"Angulo antena: {yaw_opuesto}")
+                            
+                            angle_antena = yaw_opuesto
+                            report_dict[key]["Azimuth"] = angle_antena
+                            intervalo_invertido = identificar_intervalo_invertido(caras)
+                            # print(f"Intervalo invertido: {intervalo_invertido}")
+                            
+                            for i, cara in enumerate(caras): 
+                                if intervalo_invertido != i:
+                                    if cara[0][1] > cara[1][1]:
+                                        if angle_antena <= cara[0][1] and angle_antena >= cara[1][1]:
+                                            report_dict[key]["Cara"] = nameCaras[i]
+                                            break
+                                    else:
+                                        if angle_antena <= cara[0][1] and angle_antena >= cara[1][1]:
+                                            report_dict[key]["Cara"] = nameCaras[i]
+                                            break
+                                else:
+                                    if cara[0][1] > cara[1][1]:
+                                        if angle_antena >= cara[0][1] or angle_antena <= cara[1][1]:
+                                            report_dict[key]["Cara"] = nameCaras[i]
+                                            break
+                                    else:
+                                        if angle_antena <= cara[0][1] or angle_antena >= cara[1][1]:
+                                            report_dict[key]["Cara"] = nameCaras[i]
+                                            break
+                            
+                        # else:
+                        #     intervalo_invertido = identificar_intervalo_invertido(caras)
+                        #     angle_antena = report_dict[key]["Azimuth"]
+                        #     for i, cara in enumerate(caras): 
+                        #         if intervalo_invertido != i:
+                        #             if cara[0][1] > cara[1][1]:
+                        #                 if angle_antena <= cara[0][1] and angle_antena >= cara[1][1]:
+                        #                     report_dict[key]["Cara"] = nameCaras[i]
+                        #                     break
+                        #             else:
+                        #                 if angle_antena <= cara[0][1] and angle_antena >= cara[1][1]:
+                        #                     report_dict[key]["Cara"] = nameCaras[i]
+                        #                     break
+                        #         else:
+                        #             if cara[0][1] > cara[1][1]:
+                        #                 if angle_antena >= cara[0][1] or angle_antena <= cara[1][1]:
+                        #                     report_dict[key]["Cara"] = nameCaras[i]
+                        #                     break
+                        #             else:
+                        #                 if angle_antena <= cara[0][1] or angle_antena >= cara[1][1]:
+                        #                     report_dict[key]["Cara"] = nameCaras[i]
+                        #                     break
+
+                        with open(f"torres/{task_name}/reporte.json", "w") as f:
+                            json.dump(report_dict, f, indent=4)
+                        
+                        report2excelIMG(task_name, cropPath)
+                    
+                    report_dict = {}
+                    with open(f"torres/{task_name}/reporte.json", "r") as f:
+                        report_dict = json.load(f)
+
+                except Exception as e:
+                    print(f"Error al calcular Caras Torre: {e}")
+
+
+            elif step == "9":
                 print("\nHas seleccionado borrar los archivos locales")
                 print(
                     f"Se eliminarán los archivos de la task seleccionada, asegurate de haber terminado el procesamiento antes de continuar"
@@ -619,6 +763,53 @@ if __name__ == "__main__":
 
                 else:
                     print("No se ha eliminado ningún archivo\n \n")
+            
+            elif step == "g":
+                try:
+                    levID, medID, task_name = taskInput(task_name)
+                    (
+                        rootPath,
+                        imagesPath,
+                        labelsPath,
+                        detectionsPath,
+                        s3_labels,
+                        s3_detections,
+                        s3_reporte,
+                        filenames,
+                        cropPath,
+                        metadataPath,
+                    ) = getDirectories(task_name)
+                     
+                    nameCaras = ["A", "B", "C", "D"]
+                    for cara in nameCaras:
+                        os.makedirs(f"torres/{task_name}/{cara}", exist_ok=True)
+                    with open(f"torres/{task_name}/reporte.json", "r") as f:
+                        report_dict = json.load(f)
+                    for key in tqdm(report_dict.keys(), desc="Copiando imágenes:"):
+                        filename = report_dict[key]["Filename"]
+                        image_path = os.path.join(rootPath, f"{filename}.JPG")
+                        cara = report_dict[key]["Cara"]
+                        label_info = report_dict[key]["Label"]
+                        metadata = read_metadata(
+                            os.path.join(metadataPath, f"{filename}.txt")
+                        )
+                        yawDegrees = float(metadata["GimbalYawDegree"])
+                        cx = float(label_info[1])
+                        cy = float(label_info[2])
+                        w = float(label_info[3])
+                        h = float(label_info[4])
+                        data_img = cv2.imread(image_path)
+                        imageBBOX = drawbbox(
+                                    data_img, label_info, yawDegrees
+                                )
+                        cv2.putText(imageBBOX, key, (10, 10), cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 15)
+                    
+                        cv2.imwrite(f"torres/{task_name}/{cara}/{filename}_{key}.JPG", imageBBOX)
+        
+                
+                except Exception as e:
+                    print(f"Error al calcular Caras Torre: {e}")
+                    
 
             elif step == "x":
                 print("Saliendo del programa...")

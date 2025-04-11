@@ -10,14 +10,12 @@ import lensfunpy
 import boto3
 from botocore.exceptions import NoCredentialsError
 import os
-from utils.functions import *
 import boto3
 from botocore.exceptions import NoCredentialsError
 import json
 import cv2
 import pandas as pd
 from tkinter import filedialog
-import xlsxwriter
 import math
 from tqdm import tqdm
 
@@ -214,6 +212,39 @@ def select_cmRefT(imageCenital, tube_distance_cm):
     print(f"Relación píxeles a cm: {px_to_cm:.4f} cm/px")
     return px_to_cm
 
+def select_center(imageCenital):
+
+    global clicked_points
+    clicked_points = []
+
+    mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
+
+    # Mostrar la imagen cenital
+    plt.imshow(cv2.cvtColor(imageCenital, cv2.COLOR_BGR2RGB))
+    plt.title("Seleccionar el centro de la torre")
+    plt.axis("off")
+
+    # Conectar el evento de clic
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
+
+    # Esperar hasta que se haga un clic
+    while len(clicked_points) < 1:
+        plt.pause(0.1)
+
+    # Desconectar el evento de clic
+    plt.gcf().canvas.mpl_disconnect(cid)
+    plt.close()
+
+    # Calcular la distancia en píxeles del tubo
+    center_px = np.array(clicked_points[0])
+    center_px = (int(center_px[0]), int(center_px[1]))
+
+
+
+    print(f"Centro de la torre: {center_px}")
+    return center_px
 
 def select_cmRef(imageCenital, tube_distance_cm):
 
@@ -434,8 +465,7 @@ def calculate_width(imageCenital, imageFrontal, px_to_cm):
 
     return round(antenna_width_cm, 1)
 
-
-def calculate_angle(imageCenital, imageFrontal, yawDegreesCenital):
+def calculate_angle(imageCenital, imageFrontal, center, angleTopimg):
     global clicked_points
     clicked_points = []
 
@@ -482,39 +512,154 @@ def calculate_angle(imageCenital, imageFrontal, yawDegreesCenital):
 
     if "None" in clicked_points:
         print("El objeto no está visible")
-        return -1212
+        return -1212, -1212, -1212
 
     # Calcular el punto medio de los puntos de la antena
     antenna_midpoint = clicked_points[0]
 
     # Centro de la imagen cenital
-    h, w, _ = imageCenital.shape
-    cx, cy = w / 2, h / 2
+    cx, cy = center
 
     # Coordenadas del punto medio de la antena
     px, py = antenna_midpoint
 
-    # Diferencia en las coordenadas
-    dx = px - cx
-    dy = (
-        cy - py
-    )  # Nota: invertimos la coordenada y porque la imagen tiene el origen en la esquina superior izquierda
+    antena_angle_img = get_angle(px, py, center, length=1000)
+    
+    angle = (angleTopimg + antena_angle_img) % 360
 
-    # Calcular el ángulo entre el centro y el punto clicado
-    alpha = np.arctan2(dy, dx)
 
-    # Ajustar el ángulo según el yaw
-    yaw_rad = np.radians(yawDegreesCenital)
-    alpha_prime = alpha - yaw_rad
 
-    # Convertir el ángulo ajustado a grados
-    alpha_prime_deg = np.degrees(alpha_prime)
 
-    # Normalizar el ángulo para que esté en el rango [0, 360)
-    angle = (alpha_prime_deg + 360) % 360
-    print(f"Ángulo: {angle:.1f}°")
-    return round(angle, 1)
+    return round(angle, 1), px, py
 
+
+
+def get_caras_torre(imageCenitalRaw, imgAngles, center, cantCaras, angleTopimg):
+    global clicked_points
+    clicked_points = []
+
+    mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
+
+    # Mostrar la imagen cenital
+    plt.imshow(cv2.cvtColor(imageCenitalRaw, cv2.COLOR_BGR2RGB))
+    plt.title("Seleccionar Limites de Caras en Circulo Verde")
+    plt.axis("off")
+
+    # Conectar el evento de tecla
+    cid_key = plt.gcf().canvas.mpl_connect("key_press_event", on_none_key_pressed)
+
+    # Conectar el evento de clic a subplot cenital
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
+    
+    # Si se apreta R se termina de seleccioanr puntos
+    while len(clicked_points) < int(cantCaras):
+        plt.pause(0.1)
+
+ 
+    # Desconectar el evento de clic
+    plt.gcf().canvas.mpl_disconnect(cid_key)
+    plt.gcf().canvas.mpl_disconnect(cid)
+    plt.close()
+
+    if "None" in clicked_points:
+        print("El objeto no está visible")
+        return -1212
+
+    angleCaras = []
+
+    for point in clicked_points:
+  
+        # Coordenadas del punto medio de la antena
+        px, py = point
+ 
+        antena_angle_img = get_angle(px, py, center, length=1000)
+      
+      
+        
+        # print(f"Angulo imagen: {antena_angle_img}")
+        
+        angle_real = (angleTopimg + antena_angle_img) % 360
+        angleCaras.append([antena_angle_img, angle_real])
+        
+
+    i = 0
+    caras = []
+    while i < len(angleCaras):
+        if i == len(angleCaras) - 1:
+
+            caras.append([angleCaras[i], angleCaras[0]])
+        else:
+    
+            caras.append([angleCaras[i], angleCaras[i+1]])
+        i += 1
+
+    return caras
+
+def identificar_intervalo_invertido(intervalos):
+    # Clasificar los intervalos en dos grupos
+    mayor = []
+    menor = []
+    
+    for i, (a, b) in enumerate(intervalos):
+        if a[1] < b[1]:
+            menor.append(i)
+        else:
+            mayor.append(i)
+    
+    # Identificar cuál grupo es minoría (el anómalo)
+    if len(mayor) == 1:
+        return mayor[0]  # Retorna el índice y el intervalo anómalo
+    elif len(menor) == 1:
+        return menor[0]  # Retorna el índice y el intervalo anómalo
+    
+    return "Anomalo"
+
+# Función para calcular coordenadas en la imagen según el ángulo
+def get_point(yaw_degree, center, length=1000):
+    xc = center[0]
+    yc = center[1]
+    
+    # Convertir el ángulo a radianes
+    angle_rad = math.radians(yaw_degree)
+    
+    # Calcular el punto rotado usando las ecuaciones de rotación
+    ximg = xc + length * math.sin(angle_rad)  # sin para rotación horaria
+    yimg = yc - length * math.cos(angle_rad)  # cos negativo para sistema de coordenadas de imagen
+    # print(f"Angulo: {yaw_degree}")
+    # print(f"X: {ximg}, Y: {yimg}")
+    return int(ximg), int(yimg)
+
+def get_angle(x, y, center, length=1000):
+    xTopImg = center[0] 
+    yTopImg = center[1] - length
+    
+    # Calcular vectores a partir de las líneas
+    vector1 = [xTopImg - center[0], yTopImg - center[1]]
+    vector2 = [x - center[0], y - center[1]]
+    
+    # Calcular el producto punto y las magnitudes
+    dot_product = np.dot(vector1, vector2)
+    norm_v1 = np.linalg.norm(vector1)
+    norm_v2 = np.linalg.norm(vector2)
+    
+    # Calcular el ángulo
+    cos_theta = dot_product / (norm_v1 * norm_v2)
+    theta_rad = np.arccos(np.clip(cos_theta, -1.0, 1.0))
+    theta_deg = np.degrees(theta_rad)
+    
+    # Calcular el producto cruz para determinar la dirección
+    # En 2D, el producto cruz es: v1.x * v2.y - v1.y * v2.x
+    cross_product = vector1[0] * vector2[1] - vector1[1] * vector2[0]
+    
+    # Si el producto cruz es negativo, el ángulo es horario
+    # Si es positivo, necesitamos restar de 360 para obtener el ángulo horario
+    if cross_product < 0:
+        theta_deg = - theta_deg
+        
+    # print(f"Angulo: {theta_deg}")
+    return theta_deg
 
 def hightPointTower(imageFrontal):
     global clicked_points
@@ -600,7 +745,6 @@ def calculate_hightOnTower(imageFrontal, cmAltoAntena):
     )
     return px_to_cm, punto_medio
 
-
 def drawbbox(
     imageFrontal, label_info, yaw_degree
 ):  # dibujar el bounding box in imageFrontal
@@ -640,6 +784,9 @@ def get_JustReport(label_path, report_dict, IDAntena):
                     "H inicial": None,
                     "H final": None,
                     "Azimuth": None,
+                    "Cara": None,
+                    "Pointx": None,
+                    "Pointy": None,
                     "Filename": label_path.split("/")[-1].split(".")[0],
                 }
 
@@ -975,8 +1122,12 @@ def getCenitalInfo(task_name):
         infoCenital = json.load(f)
         angle_to_north = infoCenital["angle_to_north"]
         pix2cm = infoCenital["pix2cm"]
-
-    return imageCenital, angle_to_north, pix2cm
+        center = infoCenital["center"]
+        imgAngles = infoCenital["imgAngles"]
+        realAngles = infoCenital["realAngles"]
+        allPos = infoCenital["allPos"]
+        angleTopimg = infoCenital["angleTopimg"]
+    return imageCenital, center, angle_to_north, pix2cm, allPos, imgAngles, realAngles, angleTopimg
 
 
 def report2excelIMG(task_name, cropPath):
@@ -1003,7 +1154,7 @@ def report2excelIMG(task_name, cropPath):
             return value
 
     # Aplicar la función a las columnas específicas
-    for col in ["Alto", "Ancho", "H centro", "H inicial", "H final", "Azimuth"]:
+    for col in ["Alto", "Ancho", "H centro", "H inicial", "H final", "Azimuth", "Cara", "Pointx", "Pointy"]:
         if col in df.columns:
             df[col] = df[col].apply(clean_value)
 
@@ -1097,6 +1248,9 @@ def csv_to_json(task_name):
         h_inicial = clean_value(row["H inicial"])
         h_final = clean_value(row["H final"])
         azimuth = clean_value(row["Azimuth"])
+        cara = clean_value(row["Cara"])
+        pointx = clean_value(row["Pointx"])
+        pointy = clean_value(row["Pointy"])
 
         label_string = row["Label"]
 
@@ -1111,6 +1265,9 @@ def csv_to_json(task_name):
             "H final": h_final,
             "Azimuth": azimuth,
             "Filename": row["Filename"],
+            "Cara": row["Cara"],
+            "Pointx": row["Pointx"],
+            "Pointy": row["Pointy"],
         }
 
     # Convert the dictionary to a JSON formatted string and save it to a file
@@ -1285,3 +1442,18 @@ def lowImgS3(
                 print("No se encontraron las credenciales para AWS.")
             except Exception as e:
                 print(f"Error al subir el archivo {file}: {str(e)}")
+
+if __name__ == "__main__":
+    pass
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

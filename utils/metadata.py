@@ -54,3 +54,14 @@ def get_metadata(root):
                 os.makedirs(os.path.join(folderRoot, "metadata"), exist_ok=True)
             with open(matadata_file, "w") as file:
                 file.write(json.dumps(metadata, indent=4, sort_keys=True, default=str))
+
+def get_metadata_one(image_path):
+        metadata = get_string_meta_data(image_path)
+
+        matadata_path = image_path.replace(".JPG", ".txt")
+        with open(matadata_path, "w") as file:
+            file.write(json.dumps(metadata, indent=4, sort_keys=True, default=str))
+
+if __name__ == "__main__":
+    
+    get_metadata_one("DJI_0310.JPG")
