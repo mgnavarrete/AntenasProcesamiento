@@ -129,6 +129,50 @@ def on_none_key_pressed(event):
     if event.key == "n":
         clicked_points.append("None")
 
+def select_especific_ref(imageCenital, tube_distance_cm):
+    global nBTN
+    nBTN = []
+    global clicked_points
+    clicked_points = []
+
+    mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
+
+    # Mostrar la imagen cenital
+    plt.imshow(cv2.cvtColor(imageCenital, cv2.COLOR_BGR2RGB))
+    plt.title("Selecciona medida de referencia en imagen")
+    plt.axis("off")
+
+    # Conectar el evento de tecla
+    cid_key = plt.gcf().canvas.mpl_connect("key_press_event", on_none_key_pressedW)
+
+    # Conectar el evento de clic
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
+
+    # Esperar hasta que se hagan dos clics (para la antena)
+    while len(clicked_points) < 2 and len(nBTN) < 1:
+        plt.pause(0.1)
+
+    # Desconectar el evento de clic
+    plt.gcf().canvas.mpl_disconnect(cid_key)
+    plt.gcf().canvas.mpl_disconnect(cid)
+    plt.close()
+
+    if "None" in nBTN:
+        print("El objeto no está visible")
+        return 0
+
+    # Calcular la distancia en píxeles del tubo
+    tube_distance_px = np.linalg.norm(
+        np.array(clicked_points[0]) - np.array(clicked_points[1])
+    )
+
+    # Relación píxeles a cm
+    px_to_cm = tube_distance_cm / tube_distance_px
+
+    print(f"Relación píxeles a cm: {px_to_cm:.4f} cm/px")
+    return px_to_cm
 
 def select_width(imageCenital, tube_distance_cm):
     global nBTN
@@ -325,6 +369,47 @@ def calculate_high(imageFrontal, pix2cm):
 
     return distCm
 
+def calculate_width_ref(imageFrontal, pix2cm):
+    global clicked_points
+    clicked_points = []
+
+    global nBTN
+    nBTN = []
+
+    mng = plt.get_current_fig_manager()
+    # Poner en pantalla completa de forma automática
+    mng.full_screen_toggle()
+
+    # Mostrar la imagen cenital
+    plt.imshow(cv2.cvtColor(imageFrontal, cv2.COLOR_BGR2RGB))
+    plt.title("Selecciona la ancho de la antena")
+    plt.axis("off")
+
+    # Conectar el evento de tecla
+    cid_key = plt.gcf().canvas.mpl_connect("key_press_event", on_none_key_pressedW)
+
+    # Conectar el evento de clic
+    cid = plt.gcf().canvas.mpl_connect("key_press_event", on_click)
+
+    # Esperar hasta que se hagan dos clics (para la antena)
+    while len(clicked_points) < 2 and len(nBTN) < 1:
+        plt.pause(0.1)
+
+    # Desconectar el evento de clic
+    plt.gcf().canvas.mpl_disconnect(cid_key)
+    plt.gcf().canvas.mpl_disconnect(cid)
+    plt.close()
+
+    if "None" in nBTN:
+        print("El objeto no está visible")
+        return -1212
+
+    distPix = np.linalg.norm(np.array(clicked_points[0]) - np.array(clicked_points[1]))
+
+    # Calcular la distancia en cm
+    distCm = distPix * pix2cm
+
+    return distCm
 
 def calculate_angle_and_width(imageCenital, imageFrontal, yawDegreesCenital, px_to_cm):
     global clicked_points
@@ -785,8 +870,8 @@ def get_JustReport(label_path, report_dict, IDAntena):
                     "H final": None,
                     "Azimuth": None,
                     "Cara": None,
-                    "Pointx": None,
-                    "Pointy": None,
+                    "Pointx": 0,
+                    "Pointy": 0,
                     "Filename": label_path.split("/")[-1].split(".")[0],
                 }
 
@@ -1251,7 +1336,10 @@ def csv_to_json(task_name):
         cara = clean_value(row["Cara"])
         pointx = clean_value(row["Pointx"])
         pointy = clean_value(row["Pointy"])
-
+        if pointx == None:
+            pointx = 0
+        if pointy == None:
+            pointy = 0
         label_string = row["Label"]
 
         report[row["ID"]] = {
@@ -1266,8 +1354,8 @@ def csv_to_json(task_name):
             "Azimuth": azimuth,
             "Filename": row["Filename"],
             "Cara": row["Cara"],
-            "Pointx": row["Pointx"],
-            "Pointy": row["Pointy"],
+            "Pointx": pointx,
+            "Pointy": pointy,
         }
 
     # Convert the dictionary to a JSON formatted string and save it to a file

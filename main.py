@@ -155,27 +155,67 @@ if __name__ == "__main__":
                     )
 
                     if option == "y":
-                        key = input("Ingrese el ID de la antena a calcular:")
-                        filename = report_dict[key]["Filename"]
-                        image_path = os.path.join(rootPath, f"{filename}.JPG")
-                        label_info = report_dict[key]["Label"]
-                        metadata = read_metadata(
-                            os.path.join(metadataPath, f"{filename}.txt")
+                        
+                        
+                        option = input(
+                        "Deseas calcular ancho con medida de referencia específica? (y/N):"
                         )
-                        yawDegrees = float(metadata["GimbalYawDegree"])
-                        modelo = metadata["Model"]
-                        imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
-                        imageWidth = imageFrontalData.shape[1]
-                        imageHeight = imageFrontalData.shape[0]
-                        imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
-                        width = calculate_width(imageCenital, imageBBOX, pix2cm)
-                        print(f"Ancho Antena: {width} cm")
-                        if width != -1212:
-                            report_dict[key]["Ancho"] = width / 100
-                            with open(f"torres/{task_name}/reporte.json", "w") as f:
-                                json.dump(report_dict, f, indent=4)
 
-                            report2excelIMG(task_name, cropPath)
+                        if option == "y":
+
+                            key = input("Ingrese el ID de la antena a calcular:")
+                            cmAnchoRef = float(input("Ingrese medida de referencia en cm:"))
+                            filename = report_dict[key]["Filename"]
+                            image_path = os.path.join(rootPath, f"{filename}.JPG")
+                            label_info = report_dict[key]["Label"]
+                            metadata = read_metadata(
+                                os.path.join(metadataPath, f"{filename}.txt")
+                            )
+                            yawDegrees = float(metadata["GimbalYawDegree"])
+                            modelo = metadata["Model"]
+                            imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
+                            imageWidth = imageFrontalData.shape[1]
+                            imageHeight = imageFrontalData.shape[0]
+                            imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
+                        
+                           
+                                
+                            pix2cm = select_especific_ref(imageBBOX, cmAnchoRef)
+                            if pix2cm != None:
+                                cmAncho = calculate_width_ref(imageBBOX, pix2cm)
+                                if cmAncho != -1212:
+                                    print(f"Ancho Antena: {cmAncho} cm")
+                                    report_dict[key]["Ancho"] = cmAncho / 100
+                                    with open(
+                                        f"torres/{task_name}/reporte.json", "w"
+                                    ) as f:
+                                        json.dump(report_dict, f, indent=4)
+
+                                    report2excelIMG(task_name, cropPath)
+                        
+                        else:
+                        
+                            key = input("Ingrese el ID de la antena a calcular:")
+                            filename = report_dict[key]["Filename"]
+                            image_path = os.path.join(rootPath, f"{filename}.JPG")
+                            label_info = report_dict[key]["Label"]
+                            metadata = read_metadata(
+                                os.path.join(metadataPath, f"{filename}.txt")
+                            )
+                            yawDegrees = float(metadata["GimbalYawDegree"])
+                            modelo = metadata["Model"]
+                            imageFrontalData = fixDistor(cv2.imread(image_path), modelo)
+                            imageWidth = imageFrontalData.shape[1]
+                            imageHeight = imageFrontalData.shape[0]
+                            imageBBOX = drawbbox(imageFrontalData, label_info, yawDegrees)
+                            width = calculate_width(imageCenital, imageBBOX, pix2cm)
+                            print(f"Ancho Antena: {width} cm")
+                            if width != -1212:
+                                report_dict[key]["Ancho"] = width / 100
+                                with open(f"torres/{task_name}/reporte.json", "w") as f:
+                                    json.dump(report_dict, f, indent=4)
+
+                                report2excelIMG(task_name, cropPath)
 
                     else:
 
