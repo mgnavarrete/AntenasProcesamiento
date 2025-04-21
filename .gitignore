@@ -6,3 +6,5 @@
 
 # Ignorar carpeta torres y contenido
 torres/
+exec/
+mainOld.py

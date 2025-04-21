@@ -544,7 +544,7 @@ def get_caras_torre(imageCenitalRaw, imgAngles, center, cantCaras, angleTopimg):
 
     # Mostrar la imagen cenital
     plt.imshow(cv2.cvtColor(imageCenitalRaw, cv2.COLOR_BGR2RGB))
-    plt.title("Seleccionar Limites de Caras en Circulo Verde")
+    plt.title("Seleccionar Limites de las 4 Caras en Circulo Verde")
     plt.axis("off")
 
     # Conectar el evento de tecla

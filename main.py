@@ -645,7 +645,7 @@ if __name__ == "__main__":
 
                     for key in tqdm(report_dict.keys(), desc="Calculando Caras"):
                         
-                        if report_dict[key]["Tipo"] == "RF" or report_dict[key]["Tipo"] == "Micro Wave":
+                        if report_dict[key]["Tipo"] == "RF" or report_dict[key]["Tipo"] == "Micro Wave" or report_dict[key]["Tipo"] == "RRU":
                           
                             filename = report_dict[key]["Filename"]
                             image_path = os.path.join(rootPath, f"{filename}.JPG")
@@ -664,7 +664,7 @@ if __name__ == "__main__":
                                     yaw_opuesto -= 360
                                 
                             
-                            # print(f"Angulo antena: {yaw_opuesto}")
+                            print(f"Angulo antena: {yaw_opuesto}")
                             
                             angle_antena = yaw_opuesto
                             report_dict[key]["Azimuth"] = angle_antena
